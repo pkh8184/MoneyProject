@@ -23,6 +23,21 @@ def compute_rsi(df: pd.DataFrame, period: int = 14) -> pd.Series:
     return rsi
 
 
+def compute_macd(
+    df: pd.DataFrame,
+    fast: int = 12,
+    slow: int = 26,
+    signal_period: int = 9
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """MACD (Line, Signal, Histogram)."""
+    ema_fast = df['close'].ewm(span=fast, adjust=False).mean()
+    ema_slow = df['close'].ewm(span=slow, adjust=False).mean()
+    line = ema_fast - ema_slow
+    signal = line.ewm(span=signal_period, adjust=False).mean()
+    hist = line - signal
+    return line, signal, hist
+
+
 if __name__ == '__main__':
     # 메인 로직은 Task 11에서 구현
     pass
