@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+tsconfig.tsbuildinfo
+.env.local
+.env*.local
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+.pytest_cache/
+scripts/venv/
+venv/
+.vercel
+.superpowers/

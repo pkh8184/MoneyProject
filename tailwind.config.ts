@@ -1,0 +1,26 @@
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: ['./src/**/*.{ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        bg: {
+          primary: { light: '#FFFFFF', dark: '#141414' },
+          secondary: { light: '#F5F7FA', dark: '#1F1F1F' }
+        },
+        text: {
+          primary: { light: '#111111', dark: '#F5F5F5' },
+          secondary: { light: '#666666', dark: '#AAAAAA' }
+        },
+        accent: { light: '#0064FF', dark: '#3D8BFF' },
+        positive: { light: '#E53935', dark: '#FF5252' },
+        negative: { light: '#3DB351', dark: '#66BB6A' }
+      }
+    }
+  },
+  plugins: []
+}
+
+export default config
