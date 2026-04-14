@@ -51,6 +51,16 @@ def compute_bollinger(
     return upper, middle, lower
 
 
+def compute_high52w(df: pd.DataFrame, window: int = 250) -> pd.Series:
+    """52주(250거래일) 신고가 (종가 기준)."""
+    return df['close'].rolling(window=window, min_periods=1).max()
+
+
+def compute_vol_avg20(df: pd.DataFrame, window: int = 20) -> pd.Series:
+    """거래량 20일 평균 (전일 기준, 당일 제외)."""
+    return df['volume'].shift(1).rolling(window=window, min_periods=window).mean()
+
+
 if __name__ == '__main__':
     # 메인 로직은 Task 11에서 구현
     pass
