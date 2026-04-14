@@ -38,6 +38,19 @@ def compute_macd(
     return line, signal, hist
 
 
+def compute_bollinger(
+    df: pd.DataFrame,
+    window: int = 20,
+    std_mult: float = 2.0
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """볼린저밴드 (Upper, Middle, Lower)."""
+    middle = df['close'].rolling(window=window, min_periods=window).mean()
+    std = df['close'].rolling(window=window, min_periods=window).std(ddof=0)
+    upper = middle + std_mult * std
+    lower = middle - std_mult * std
+    return upper, middle, lower
+
+
 if __name__ == '__main__':
     # 메인 로직은 Task 11에서 구현
     pass
