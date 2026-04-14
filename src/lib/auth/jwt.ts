@@ -33,5 +33,5 @@ export async function verifyJWT(token: string): Promise<JWTPayload> {
   if (typeof payload.uid !== 'string') {
     throw new Error('Invalid JWT payload')
   }
-  return payload as JWTPayload
+  return payload as unknown as JWTPayload
 }
