@@ -133,7 +133,8 @@ def main():
     today = datetime.now(kst).strftime('%Y-%m-%d')
     ymd = today.replace('-', '')
 
-    start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=1100)
+    # 오늘 기준 5년 전부터 수집 (달력 5년 = 1826일, 윤년 여유 1830일)
+    start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=1830)
     start_ymd = start_dt.strftime('%Y%m%d')
 
     print(f'[INFO] Fetching tickers for {today}...')
