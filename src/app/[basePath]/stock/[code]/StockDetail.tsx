@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAppStore } from '@/store/useAppStore'
-import { loadIndicators, loadFundamentals, loadUpdatedAt } from '@/lib/dataLoader'
+import { loadIndicators, loadFundamentals, loadUpdatedAt, loadOhlcvForCode, type SingleStockOhlcv } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import StockChart from '@/components/stock/StockChart'
 import IndicatorTable from '@/components/stock/IndicatorTable'
@@ -18,18 +18,21 @@ export default function StockDetail({ code, basePath }: Props) {
   const mode = useAppStore((s) => s.mode)
   const [stock, setStock] = useState<StockIndicators | null>(null)
   const [fundamental, setFundamental] = useState<Fundamental | undefined>(undefined)
+  const [ohlcvFull, setOhlcvFull] = useState<SingleStockOhlcv | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund] = await Promise.all([
+      const [ind, fund, ohlcv] = await Promise.all([
         loadIndicators(u.trade_date),
-        loadFundamentals(u.trade_date)
+        loadFundamentals(u.trade_date),
+        loadOhlcvForCode(u.trade_date, code)
       ])
       const s = ind?.[code] as StockIndicators | undefined
       setStock(s ?? null)
       setFundamental(fund?.[code])
+      setOhlcvFull(ohlcv)
       setLoading(false)
     })
   }, [code])
@@ -72,7 +75,7 @@ export default function StockDetail({ code, basePath }: Props) {
       </header>
 
       <section className="mb-8">
-        <StockChart stock={stock} />
+        <StockChart stock={stock} ohlcvFull={ohlcvFull} />
       </section>
 
       {mode === 'beginner' ? (
