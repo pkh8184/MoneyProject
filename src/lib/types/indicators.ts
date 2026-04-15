@@ -15,6 +15,9 @@ export interface StockIndicators {
   name: string
   market: 'KOSPI' | 'KOSDAQ' | 'UNKNOWN'
   dates: string[]
+  open?: number[]
+  high?: number[]
+  low?: number[]
   close: number[]
   volume: number[]
   ma5: (number | null)[]
