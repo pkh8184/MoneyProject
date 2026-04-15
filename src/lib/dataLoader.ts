@@ -106,6 +106,35 @@ export async function loadSectors(tradeDate: string): Promise<SectorsJson | null
   }
 }
 
+/** 단일 종목의 3년치 OHLCV. ohlcv.json 전체를 한번 fetch 후 code로 추출. */
+export interface SingleStockOhlcv {
+  dates: string[]
+  open: number[]
+  high: number[]
+  low: number[]
+  close: number[]
+  volume: number[]
+}
+
+const IDB_OHLCV_KEY = 'ohlcv-full-cache-v1'
+
+export async function loadOhlcvForCode(tradeDate: string, code: string): Promise<SingleStockOhlcv | null> {
+  // 전체 ohlcv.json을 한 번만 fetch (IndexedDB 캐시)
+  const cached = await getCached<Record<string, SingleStockOhlcv>>(IDB_OHLCV_KEY, tradeDate)
+  if (cached) {
+    return cached[code] ?? null
+  }
+  try {
+    const res = await fetch('/data/ohlcv.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as Record<string, SingleStockOhlcv>
+    await setCached(IDB_OHLCV_KEY, tradeDate, data)
+    return data[code] ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function loadPatternStats(tradeDate: string): Promise<PatternStatsJson | null> {
   const cached = await getCached<PatternStatsJson>(IDB_PATTERN_STATS_KEY, tradeDate)
   if (cached) return cached
