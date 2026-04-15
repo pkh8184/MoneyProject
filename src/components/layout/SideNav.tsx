@@ -57,6 +57,13 @@ export default function SideNav() {
               </button>
             </div>
             <Link
+              href={`/${basePath}/recommendations`}
+              onClick={() => setOpen(false)}
+              className={linkClass(isActive('/recommendations'))}
+            >
+              💡 구매 추천 일괄
+            </Link>
+            <Link
               href={`/${basePath}/screener`}
               onClick={() => setOpen(false)}
               className={linkClass(isActive('/screener'))}
