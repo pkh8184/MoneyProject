@@ -16,7 +16,8 @@ const config: Config = {
         },
         accent: { light: '#0064FF', dark: '#3D8BFF' },
         positive: { light: '#E53935', dark: '#FF5252' },
-        negative: { light: '#3DB351', dark: '#66BB6A' }
+        negative: { light: '#3DB351', dark: '#66BB6A' },
+        border: { light: '#E4E4E4', dark: '#333333' }
       }
     }
   },
