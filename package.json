@@ -17,7 +17,8 @@
     "jose": "^5.10.0",
     "next": "14.2.15",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
