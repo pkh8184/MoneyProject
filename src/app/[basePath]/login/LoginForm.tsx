@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { strings } from '@/lib/strings/ko'
+import Button from '@/components/ui/Button'
 
 export default function LoginForm() {
   const [id, setId] = useState('')
@@ -13,12 +14,7 @@ export default function LoginForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-
-    if (!agree) {
-      setError(strings.auth.agreementRequired)
-      return
-    }
-
+    if (!agree) { setError(strings.auth.agreementRequired); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/login', {
@@ -27,10 +23,7 @@ export default function LoginForm() {
         body: JSON.stringify({ id, pw, agree })
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || strings.auth.loginFail)
-        return
-      }
+      if (!res.ok) { setError(data.error || strings.auth.loginFail); return }
       window.location.href = data.redirect
     } catch {
       setError(strings.common.error)
@@ -39,48 +32,39 @@ export default function LoginForm() {
     }
   }
 
+  const inputClass = 'w-full h-14 px-5 rounded-2xl bg-bg-secondary-light dark:bg-bg-secondary-dark text-base placeholder-text-secondary-light dark:placeholder-text-secondary-dark focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark'
+
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div>
-        <label htmlFor="id" className="block text-sm font-medium mb-1">
-          {strings.auth.idLabel}
-        </label>
-        <input
-          id="id"
-          name="id"
-          type="text"
-          autoComplete="username"
-          required
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          className="w-full px-3 py-2 border border-border-light dark:border-border-dark rounded-md bg-bg-primary-light dark:bg-bg-secondary-dark"
-        />
-      </div>
+      <input
+        name="id"
+        type="text"
+        autoComplete="username"
+        required
+        value={id}
+        onChange={(e) => setId(e.target.value)}
+        placeholder={strings.auth.idLabel}
+        className={inputClass}
+      />
+      <input
+        name="pw"
+        type="password"
+        autoComplete="current-password"
+        required
+        value={pw}
+        onChange={(e) => setPw(e.target.value)}
+        placeholder={strings.auth.pwLabel}
+        className={inputClass}
+      />
 
-      <div>
-        <label htmlFor="pw" className="block text-sm font-medium mb-1">
-          {strings.auth.pwLabel}
-        </label>
-        <input
-          id="pw"
-          name="pw"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          className="w-full px-3 py-2 border border-border-light dark:border-border-dark rounded-md bg-bg-primary-light dark:bg-bg-secondary-dark"
-        />
-      </div>
-
-      <label className="flex items-start gap-2 text-xs">
+      <label className="flex items-start gap-3 py-3 text-sm cursor-pointer">
         <input
           type="checkbox"
           checked={agree}
           onChange={(e) => setAgree(e.target.checked)}
-          className="mt-0.5"
+          className="mt-1 w-5 h-5 rounded"
         />
-        <span>{strings.auth.agreementLabel}</span>
+        <span className="leading-relaxed">{strings.auth.agreementLabel}</span>
       </label>
 
       {error && (
@@ -89,13 +73,9 @@ export default function LoginForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 bg-accent-light dark:bg-accent-dark text-white rounded-md font-medium disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
         {loading ? strings.common.loading : strings.auth.loginButton}
-      </button>
+      </Button>
     </form>
   )
 }
