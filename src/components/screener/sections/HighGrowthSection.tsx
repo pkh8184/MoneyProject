@@ -33,8 +33,13 @@ export default function HighGrowthSection({ indicators, fundamentals, patternSta
   if (results.length === 0) return null
   return (
     <section>
-      <h2 className="text-lg font-bold mb-4">🚀 급등 예상</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <header className="mb-6">
+        <h2 className="text-2xl font-bold">🚀 급등 예상</h2>
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
+          단기 급등 가능성이 높은 종목
+        </p>
+      </header>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {results.map((r) => (
           <StockCardWithPrediction
             key={r.code}

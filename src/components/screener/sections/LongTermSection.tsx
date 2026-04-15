@@ -34,8 +34,13 @@ export default function LongTermSection({ indicators, fundamentals, patternStats
   if (results.length === 0) return null
   return (
     <section>
-      <h2 className="text-lg font-bold mb-4">🏔 중장기 장기 투자</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <header className="mb-6">
+        <h2 className="text-2xl font-bold">🏔 중장기 장기 투자</h2>
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
+          장기 상승 추세에 진입한 종목
+        </p>
+      </header>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {results.map((r) => (
           <StockCardWithPrediction
             key={r.code}
