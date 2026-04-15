@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'next/navigation'
 import PresetSidebar from '@/components/screener/PresetSidebar'
 import ResultTable from '@/components/screener/ResultTable'
 import ParamControls from '@/components/screener/ParamControls'
 import PresetDescription from '@/components/screener/PresetDescription'
+import Card from '@/components/ui/Card'
 import { getExpertPresets, getPresetById } from '@/lib/presets/registry'
 import { runPreset, type FilterResult } from '@/lib/filter'
 import { loadIndicators, loadFundamentals, loadUpdatedAt } from '@/lib/dataLoader'
@@ -12,6 +14,8 @@ import type { IndicatorsJson, FundamentalsJson } from '@/lib/types/indicators'
 import type { PresetParams } from '@/lib/presets/types'
 
 export default function ExpertScreener() {
+  const routeParams = useParams()
+  const basePath = (routeParams?.basePath as string) || ''
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,16 +60,15 @@ export default function ExpertScreener() {
       <section className="flex-1 min-w-0">
         {currentPreset ? (
           <>
-            <h2 className="text-lg font-bold mb-2">{currentPreset.name}</h2>
-            <PresetDescription preset={currentPreset} />
-            <ParamControls
-              params={currentPreset.params}
-              values={paramsByPreset[currentPreset.id] ?? {}}
-              onChange={(next) => setParamsByPreset({ ...paramsByPreset, [currentPreset.id]: next })}
-            />
-            <div className="mt-4">
-              <ResultTable results={results} loading={loading} />
-            </div>
+            <Card padding="md" className="mb-6">
+              <PresetDescription preset={currentPreset} />
+              <ParamControls
+                params={currentPreset.params}
+                values={paramsByPreset[currentPreset.id] ?? {}}
+                onChange={(next) => setParamsByPreset({ ...paramsByPreset, [currentPreset.id]: next })}
+              />
+            </Card>
+            <ResultTable results={results} loading={loading} basePath={basePath} />
           </>
         ) : (
           <p>프리셋을 선택해 주세요.</p>
