@@ -1,5 +1,7 @@
 'use client'
 
+import Card from '@/components/ui/Card'
+import GaugeBar from '@/components/ui/GaugeBar'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
 interface Props {
@@ -64,36 +66,43 @@ export default function BowlVolumePanel({ stock, fundamental }: Props) {
   }
   const totalScore = Math.min(100, baseScore + foreignBonus)
 
-  const row = (label: string, value: string, stars: string) => (
-    <tr className="border-b border-border-light dark:border-border-dark" key={label}>
-      <td className="py-1 pr-3 text-text-secondary-light dark:text-text-secondary-dark">{label}</td>
-      <td className="py-1 pr-3 font-mono text-xs">{value}</td>
-      <td className="py-1 text-right text-xs">{stars}</td>
-    </tr>
-  )
-
-  const fmt = (n: number | null | undefined) => n == null ? '—' : n.toString()
+  const rows: Array<{ label: string; value: number | null | undefined; metric: string }> = [
+    { label: 'Dry-up 비율', value: stock.bowl_vol_dryup_ratio, metric: 'dryup' },
+    { label: 'Explosion 비율', value: stock.bowl_vol_explosion_ratio, metric: 'explosion' },
+    { label: '거래대금 팽창', value: stock.bowl_value_expansion_ratio, metric: 'value_exp' },
+    { label: '매집 봉 수', value: stock.bowl_accumulation_bars, metric: 'acc' },
+    { label: '거래량 기울기', value: stock.bowl_volume_slope, metric: 'slope' },
+    { label: '외국인 매집', value: foreignRatio, metric: 'foreign' }
+  ]
 
   return (
-    <section className="mt-6">
-      <h3 className="font-bold mb-2">🍚 밥그릇 거래량 분석 (Beta)</h3>
-      <table className="w-full text-sm">
-        <tbody>
-          {row('Dry-up 비율', fmt(stock.bowl_vol_dryup_ratio), starsFor('dryup', stock.bowl_vol_dryup_ratio))}
-          {row('Explosion 비율', fmt(stock.bowl_vol_explosion_ratio), starsFor('explosion', stock.bowl_vol_explosion_ratio))}
-          {row('거래대금 팽창', fmt(stock.bowl_value_expansion_ratio), starsFor('value_exp', stock.bowl_value_expansion_ratio))}
-          {row('매집 봉 수', fmt(stock.bowl_accumulation_bars), starsFor('acc', stock.bowl_accumulation_bars))}
-          {row('거래량 기울기', fmt(stock.bowl_volume_slope), starsFor('slope', stock.bowl_volume_slope))}
-          {row('외국인 매집 비율', foreignRatio == null ? '—' : foreignRatio.toFixed(2), starsFor('foreign', foreignRatio))}
-        </tbody>
-      </table>
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="font-bold">종합 점수: {totalScore} / 100</span>
-        <span>{gradeLabel(totalScore)}</span>
+    <Card padding="lg" className="mt-6">
+      <h3 className="font-bold text-xl mb-4">🍚 밥그릇 거래량 분석 (Beta)</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {rows.map((r) => (
+          <Card key={r.label} padding="sm" className="!p-4">
+            <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{r.label}</div>
+            <div className="mt-1 flex items-baseline justify-between">
+              <span className="font-mono text-base font-bold">
+                {r.value == null ? '—' : r.value.toString()}
+              </span>
+              <span className="text-sm">{starsFor(r.metric, r.value)}</span>
+            </div>
+          </Card>
+        ))}
       </div>
-      <p className="mt-2 text-[10px] text-text-secondary-light dark:text-text-secondary-dark">
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-base font-bold">종합 점수</span>
+          <span className="text-base">{totalScore} / 100 · {gradeLabel(totalScore)}</span>
+        </div>
+        <GaugeBar value={totalScore} max={100} />
+      </div>
+
+      <p className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">
         Beta. 참고용. 미래 수익 보장 아님.
       </p>
-    </section>
+    </Card>
   )
 }

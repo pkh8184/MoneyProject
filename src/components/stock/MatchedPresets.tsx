@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { allPresets } from '@/lib/presets/registry'
 import { strings } from '@/lib/strings/ko'
+import Pill from '@/components/ui/Pill'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
 interface Props {
@@ -13,11 +14,8 @@ interface Props {
 export default function MatchedPresets({ stock, fundamental }: Props) {
   const matched = useMemo(() => {
     return allPresets.filter((p) => {
-      try {
-        return p.filter({ stock, fundamental, params: {} })
-      } catch {
-        return false
-      }
+      try { return p.filter({ stock, fundamental, params: {} }) }
+      catch { return false }
     })
   }, [stock, fundamental])
 
@@ -26,10 +24,10 @@ export default function MatchedPresets({ stock, fundamental }: Props) {
   }
 
   return (
-    <ul className="space-y-1 text-sm">
+    <div className="flex flex-wrap gap-2">
       {matched.map((p) => (
-        <li key={p.id}>✅ {p.name}</li>
+        <Pill key={p.id} variant="accent">{p.name}</Pill>
       ))}
-    </ul>
+    </div>
   )
 }

@@ -1,32 +1,38 @@
 import type { StockIndicators } from '@/lib/types/indicators'
+import Card from '@/components/ui/Card'
+
+function last<T>(arr: (T | null)[]): T | null {
+  return arr.at(-1) ?? null
+}
+function fmt(n: number | null | undefined) {
+  return n == null ? '-' : n.toLocaleString()
+}
+function fmt1(n: number | null | undefined) {
+  return n == null ? '-' : n.toFixed(1)
+}
+
+const Row = ({ label, value }: { label: string; value: string }) => (
+  <Card padding="sm" className="!p-4">
+    <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{label}</div>
+    <div className="mt-1 text-base font-bold font-mono">{value}</div>
+  </Card>
+)
 
 export default function IndicatorTable({ stock }: { stock: StockIndicators }) {
-  const last = <T,>(arr: (T | null)[]): T | null => arr.at(-1) ?? null
-  const row = (label: string, value: string | number | null) => (
-    <tr className="border-b border-border-light dark:border-border-dark" key={label}>
-      <td className="py-1 pr-4 text-text-secondary-light dark:text-text-secondary-dark">{label}</td>
-      <td className="py-1 text-right font-mono text-xs">{value ?? '-'}</td>
-    </tr>
-  )
-  const fmt = (n: number | null) => n == null ? null : n.toLocaleString()
-  const fmt1 = (n: number | null) => n == null ? null : n.toFixed(1)
   return (
-    <table className="w-full text-sm">
-      <tbody>
-        {row('MA5', fmt(last(stock.ma5)))}
-        {row('MA20', fmt(last(stock.ma20)))}
-        {row('MA60', fmt(last(stock.ma60)))}
-        {row('MA120', fmt(last(stock.ma120)))}
-        {row('RSI14', fmt1(last(stock.rsi14)))}
-        {row('MACD Line', fmt1(last(stock.macd_line)))}
-        {row('MACD Signal', fmt1(last(stock.macd_signal)))}
-        {row('MACD Hist', fmt1(last(stock.macd_hist)))}
-        {row('BB Upper', fmt(last(stock.bb_upper)))}
-        {row('BB Middle', fmt(last(stock.bb_middle)))}
-        {row('BB Lower', fmt(last(stock.bb_lower)))}
-        {row('52주 신고가', fmt(stock.high52w))}
-        {row('거래량 20일 평균', fmt(stock.vol_avg20))}
-      </tbody>
-    </table>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <Row label="MA5" value={fmt(last(stock.ma5))} />
+      <Row label="MA20" value={fmt(last(stock.ma20))} />
+      <Row label="MA60" value={fmt(last(stock.ma60))} />
+      <Row label="MA120" value={fmt(last(stock.ma120))} />
+      <Row label="RSI14" value={fmt1(last(stock.rsi14))} />
+      <Row label="MACD" value={fmt1(last(stock.macd_line))} />
+      <Row label="Signal" value={fmt1(last(stock.macd_signal))} />
+      <Row label="Histogram" value={fmt1(last(stock.macd_hist))} />
+      <Row label="BB Upper" value={fmt(last(stock.bb_upper))} />
+      <Row label="BB Lower" value={fmt(last(stock.bb_lower))} />
+      <Row label="52주 신고가" value={fmt(stock.high52w)} />
+      <Row label="20일 평균 거래량" value={fmt(stock.vol_avg20)} />
+    </div>
   )
 }

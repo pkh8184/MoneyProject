@@ -60,15 +60,15 @@ export default function StockDetail({ code, basePath }: Props) {
         {strings.stock.backToScreener}
       </Link>
 
-      <header className="mt-4 mb-6">
-        <h1 className="text-2xl font-bold">{stock.name}</h1>
-        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+      <header className="mt-6 mb-8">
+        <h1 className="text-3xl font-bold">{stock.name}</h1>
+        <p className="text-base text-text-secondary-light dark:text-text-secondary-dark mt-1">
           {code} · {stock.market}
         </p>
-        <div className="flex items-baseline gap-3 mt-2">
-          <p className="text-3xl font-bold">{price?.toLocaleString() ?? '-'}원</p>
+        <div className="flex items-baseline gap-3 mt-3">
+          <p className="text-hero">{price?.toLocaleString() ?? '-'}원</p>
           {price != null && prev != null && (
-            <p className={`text-sm font-bold ${changeClass}`}>
+            <p className={`text-lg font-bold ${changeClass}`}>
               {change >= 0 ? '+' : ''}{change.toLocaleString()} ({changePct.toFixed(2)}%)
             </p>
           )}
@@ -83,18 +83,18 @@ export default function StockDetail({ code, basePath }: Props) {
         <BeginnerGuide stock={stock} fundamental={fundamental} />
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <section>
-              <h3 className="font-bold mb-2">{strings.stock.indicators}</h3>
-              <IndicatorTable stock={stock} />
-            </section>
-            <section>
-              <h3 className="font-bold mb-2">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
-              <FundamentalTable fundamental={fundamental} />
-              <h3 className="font-bold mt-6 mb-2">{strings.stock.matchedPresets}</h3>
-              <MatchedPresets stock={stock} fundamental={fundamental} />
-            </section>
-          </div>
+          <section className="mt-10">
+            <h3 className="text-xl font-bold mb-4">{strings.stock.indicators}</h3>
+            <IndicatorTable stock={stock} />
+          </section>
+          <section className="mt-10">
+            <h3 className="text-xl font-bold mb-4">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
+            <FundamentalTable fundamental={fundamental} />
+          </section>
+          <section className="mt-10">
+            <h3 className="text-xl font-bold mb-4">{strings.stock.matchedPresets}</h3>
+            <MatchedPresets stock={stock} fundamental={fundamental} />
+          </section>
           <BowlVolumePanel stock={stock} fundamental={fundamental} />
         </>
       )}
