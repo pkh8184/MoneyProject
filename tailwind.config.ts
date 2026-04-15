@@ -5,6 +5,18 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Pretendard',
+          'Pretendard JP',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'system-ui',
+          'Apple SD Gothic Neo',
+          'Malgun Gothic',
+          'sans-serif'
+        ]
+      },
       colors: {
         bg: {
           primary: { light: '#FFFFFF', dark: '#141414' },
