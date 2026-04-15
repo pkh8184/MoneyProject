@@ -46,7 +46,7 @@ export default function BeginnerScreener() {
   if (!indicators) return <p>{strings.screener.empty}</p>
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <TodayRecommendSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
       <LongTermSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
       <HighGrowthSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />

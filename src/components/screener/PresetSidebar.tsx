@@ -16,27 +16,28 @@ export default function PresetSidebar({ presets, activeId, onSelect }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   return (
-    <aside className="w-full md:w-72 border-r border-border-light dark:border-border-dark">
-      <div className="flex flex-col">
+    <aside className="w-full md:w-72">
+      <div className="flex flex-col gap-4">
         {grouped.map(({ category, items }) => {
           const meta = CATEGORY_META[category]
           const isCollapsed = collapsed[category] ?? false
           return (
-            <section key={category} className="border-b border-border-light dark:border-border-dark">
+            <section key={category}>
               <button
                 type="button"
                 onClick={() => setCollapsed({ ...collapsed, [category]: !isCollapsed })}
-                className="w-full text-left px-4 py-2 flex items-center justify-between bg-bg-secondary-light dark:bg-bg-secondary-dark"
+                className="w-full text-left px-2 py-2 flex items-center justify-between"
               >
-                <span className="text-xs font-bold">
-                  {meta.icon} {meta.label} ({items.length})
+                <span className="text-sm font-bold text-text-secondary-light dark:text-text-secondary-dark">
+                  {meta.icon} {meta.label}
+                  <span className="ml-1 text-text-secondary-light dark:text-text-secondary-dark opacity-60">({items.length})</span>
                 </span>
-                <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark md:hidden">
+                <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark md:hidden">
                   {isCollapsed ? '▾' : '▴'}
                 </span>
               </button>
               {!isCollapsed && (
-                <ul>
+                <ul className="space-y-1">
                   {items.map((p) => (
                     <PresetItemRow
                       key={p.id}

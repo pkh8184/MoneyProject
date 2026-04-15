@@ -14,7 +14,7 @@ export default function ModeToggle() {
       aria-checked={mode === 'expert'}
       aria-label={strings.mode.toggle_aria}
       onClick={() => setMode(mode === 'beginner' ? 'expert' : 'beginner')}
-      className="inline-flex items-center gap-2 px-3 py-1 text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark"
+      className="inline-flex items-center gap-2 px-4 min-h-9 text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark"
     >
       <span className={mode === 'beginner' ? 'font-bold' : 'text-text-secondary-light dark:text-text-secondary-dark'}>
         {strings.mode.beginner}

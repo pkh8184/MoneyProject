@@ -30,6 +30,13 @@ const config: Config = {
         positive: { light: '#E53935', dark: '#FF5252' },
         negative: { light: '#3DB351', dark: '#66BB6A' },
         border: { light: '#E4E4E4', dark: '#333333' }
+      },
+      boxShadow: {
+        'soft': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
+        'soft-md': '0 4px 12px rgba(0,0,0,0.06), 0 12px 24px rgba(0,0,0,0.04)'
+      },
+      fontSize: {
+        'hero': ['2.5rem', { lineHeight: '1.1', fontWeight: '700' }]
       }
     }
   },

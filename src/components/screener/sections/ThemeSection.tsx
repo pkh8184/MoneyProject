@@ -48,7 +48,12 @@ export default function ThemeSection({ indicators, fundamentals, sectors, patter
 
   return (
     <section>
-      <h2 className="text-lg font-bold mb-4">🏷 테마별</h2>
+      <header className="mb-6">
+        <h2 className="text-2xl font-bold">🏷 테마별</h2>
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
+          테마별로 유망한 신호
+        </p>
+      </header>
       <div className="flex flex-wrap gap-2 mb-4">
         {THEME_DEFS.map((t) => (
           <button
@@ -68,7 +73,7 @@ export default function ThemeSection({ indicators, fundamentals, sectors, patter
       {results.length === 0 ? (
         <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">이 테마에서 신호 발견 없음</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {results.map((r) => (
             <StockCardWithPrediction
               key={r.code}

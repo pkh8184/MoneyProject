@@ -53,11 +53,13 @@ export default function PredictedReturnSection({ indicators, patternStats, baseP
   if (top.length === 0) return null
   return (
     <section>
-      <h2 className="text-lg font-bold mb-4">📈 예측 수익률 Top 10</h2>
-      <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-3">
-        과거 3년간 유사 패턴 발생 시의 D+7 평균 수익률 기준. 미래 수익 보장 아님.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <header className="mb-6">
+        <h2 className="text-2xl font-bold">📈 예측 수익률 Top 10</h2>
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
+          과거 유사 패턴 기반 예상 수익 상위 10개
+        </p>
+      </header>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {top.map((r) => (
           <StockCardWithPrediction
             key={r.code}

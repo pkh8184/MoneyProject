@@ -2,6 +2,7 @@
 
 import type { Preset } from '@/lib/presets/types'
 import PresetInfoButton from './PresetInfoButton'
+import Pill from '@/components/ui/Pill'
 
 interface Props {
   preset: Preset
@@ -12,34 +13,29 @@ interface Props {
 export default function PresetItemRow({ preset, active, onSelect }: Props) {
   const hasParams = preset.params.length > 0
   return (
-    <li className="flex items-start gap-1 pr-2">
+    <li className="flex items-start gap-1 pr-2 group">
       <button
         type="button"
         onClick={() => onSelect(preset.id)}
-        className={`flex-1 text-left px-4 py-2 text-sm hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark ${
+        className={`relative flex-1 text-left px-5 py-3 rounded-xl hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark ${
           active ? 'bg-bg-secondary-light dark:bg-bg-secondary-dark' : ''
         }`}
       >
+        {active && (
+          <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-7 bg-accent-light dark:bg-accent-dark rounded-full" />
+        )}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={active ? 'font-bold' : ''}>
-            {active ? '● ' : '○ '}{preset.name}
+          <span className={`text-base ${active ? 'font-bold text-accent-light dark:text-accent-dark' : ''}`}>
+            {preset.name}
           </span>
-          {preset.beta && (
-            <span className="text-[10px] px-1.5 py-0.5 bg-accent-light dark:bg-accent-dark text-white rounded">
-              BETA
-            </span>
-          )}
-          {hasParams && (
-            <span className="text-[10px] px-1.5 py-0.5 border border-border-light dark:border-border-dark rounded">
-              param
-            </span>
-          )}
+          {preset.beta && <Pill>BETA</Pill>}
+          {hasParams && <Pill>PARAM</Pill>}
         </div>
-        <div className="text-[11px] text-text-secondary-light dark:text-text-secondary-dark mt-0.5">
+        <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
           {preset.shortFormula}
         </div>
       </button>
-      <div className="pt-3">
+      <div className="pt-3 opacity-60 group-hover:opacity-100 transition-opacity">
         <PresetInfoButton preset={preset} />
       </div>
     </li>
