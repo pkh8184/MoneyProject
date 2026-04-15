@@ -10,12 +10,14 @@ import { bbLowerBounce } from './bb_lower_bounce'
 import { lowPbr } from './low_pbr'
 import { comboGolden } from './combo_golden'
 import { comboValueRebound } from './combo_value_rebound'
+import { bowlPattern } from './bowl_pattern'
 import type { Preset } from './types'
 
 export const allPresets: Preset[] = [
   goldenCross, alignment, ma60TurnUp, high52w,
   volumeSpike, foreignInstBuy, rsiRebound, macdCross,
-  bbLowerBounce, lowPbr, comboGolden, comboValueRebound
+  bbLowerBounce, lowPbr, comboGolden, comboValueRebound,
+  bowlPattern
 ]
 
 export const presetMap: Record<string, Preset> = Object.fromEntries(

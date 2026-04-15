@@ -15,6 +15,13 @@ export interface PresetDescription {
   expert: string
 }
 
+export interface PresetFormula {
+  summary: string            // 한 줄 요약
+  baseConditions: string[]   // 필수 조건 (순서대로)
+  bonusConditions?: string[] // 가산 조건 (선택)
+  reference?: string         // 출처·참고
+}
+
 export interface PresetMeta {
   id: string
   name: string
@@ -25,4 +32,6 @@ export interface PresetMeta {
   holdingPeriod: string
   stopLoss: string
   traps: string
+  beta?: boolean             // Beta 표시
+  formula?: PresetFormula    // 정보 버튼에서 보여줄 공식
 }
