@@ -1,0 +1,31 @@
+'use client'
+
+import type { Preset } from '@/lib/presets/types'
+
+interface Props {
+  presets: Preset[]
+  activeId: string | null
+  onSelect: (id: string) => void
+}
+
+export default function PresetSidebar({ presets, activeId, onSelect }: Props) {
+  return (
+    <aside className="w-full md:w-60 border-r border-border-light dark:border-border-dark">
+      <ul className="flex md:flex-col overflow-x-auto md:overflow-visible">
+        {presets.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(p.id)}
+              className={`block w-full text-left px-4 py-2 text-sm hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark ${
+                activeId === p.id ? 'bg-bg-secondary-light dark:bg-bg-secondary-dark font-bold' : ''
+              }`}
+            >
+              {p.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}
