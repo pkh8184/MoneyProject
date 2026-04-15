@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import ThemeProvider from '@/components/providers/ThemeProvider'
-import ModeProvider from '@/components/providers/ModeProvider'
 
 export default function SecretLayout({
   children,
@@ -15,9 +14,7 @@ export default function SecretLayout({
   }
   return (
     <ThemeProvider>
-      <ModeProvider>
-        {children}
-      </ModeProvider>
+      {children}
     </ThemeProvider>
   )
 }

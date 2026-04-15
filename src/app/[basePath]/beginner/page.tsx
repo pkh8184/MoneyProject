@@ -1,13 +1,13 @@
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-import ExpertScreener from './ExpertScreener'
+import BeginnerContent from './BeginnerContent'
 
-export default function ScreenerPage() {
+export default function BeginnerPage({ params }: { params: { basePath: string } }) {
   return (
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-6 min-h-[60vh]">
-        <ExpertScreener />
+        <BeginnerContent basePath={params.basePath} />
       </main>
       <Footer />
     </>

@@ -16,9 +16,11 @@ import type {
   IndicatorsJson, FundamentalsJson, SectorsJson, PatternStatsJson
 } from '@/lib/types/indicators'
 
-export default function BeginnerScreener() {
+interface Props { basePath: string }
+
+export default function BeginnerContent({ basePath: propBasePath }: Props) {
   const params = useParams()
-  const basePath = (params?.basePath as string) || ''
+  const basePath = (params?.basePath as string) || propBasePath || ''
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
   const [sectors, setSectors] = useState<SectorsJson | null>(null)
@@ -47,12 +49,18 @@ export default function BeginnerScreener() {
 
   return (
     <div className="space-y-12">
+      <header className="mb-2">
+        <h2 className="text-3xl font-bold">{strings.beginner.pageTitle}</h2>
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2">
+          {strings.beginner.pageDesc}
+        </p>
+      </header>
       <TodayRecommendSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
       <LongTermSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
       <HighGrowthSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
       <ThemeSection indicators={indicators} fundamentals={fundamentals} sectors={sectors} patternStats={patternStats} basePath={basePath} />
       <PredictedReturnSection indicators={indicators} patternStats={patternStats} basePath={basePath} />
-      <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark pt-8 border-t border-border-light dark:border-border-dark">
+      <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark pt-8 border-t border-border-light dark:border-border-dark">
         * 모든 예측 수익률은 과거 통계 기반 참고치이며, 미래 수익을 보장하지 않습니다.
       </p>
     </div>

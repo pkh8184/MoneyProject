@@ -48,6 +48,11 @@ export const strings = {
     empty: '조건에 맞는 종목이 없습니다',
     resultCount: (n: number) => `${n}개 종목`
   },
+  beginner: {
+    linkLabel: '입문 추천 종목',
+    pageTitle: '🌱 입문 추천 종목',
+    pageDesc: '처음 시작하시는 분을 위한 테마별 유망 종목 모음입니다.'
+  },
   stockList: {
     title: '수집된 종목 리스트',
     linkLabel: '전체 종목',

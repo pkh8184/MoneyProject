@@ -30,17 +30,26 @@ interface AggRow {
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
 
-function loadEnabledFromStorage(defaultIds: string[]): Set<string> {
-  if (typeof window === 'undefined') return new Set(defaultIds)
+// 기본 추천 프리셋 (겹침 최소화된 6개 core 시그널)
+const DEFAULT_RECOMMENDED_IDS = [
+  'combo_golden',
+  'combo_value_rebound',
+  'bowl_pattern',
+  'safe_large_cap',
+  'prev_high_break',
+  'v_shape_rebound'
+]
+
+function loadEnabledFromStorage(fallback: string[]): Set<string> {
+  if (typeof window === 'undefined') return new Set(fallback)
   try {
     const raw = localStorage.getItem(LS_KEY)
-    if (!raw) return new Set(defaultIds)
+    if (!raw) return new Set(fallback)
     const arr = JSON.parse(raw)
-    if (!Array.isArray(arr)) return new Set(defaultIds)
-    const valid = arr.filter((id) => defaultIds.includes(id))
-    return new Set(valid.length > 0 ? valid : defaultIds)
+    if (!Array.isArray(arr)) return new Set(fallback)
+    return new Set(arr.filter((id): id is string => typeof id === 'string'))
   } catch {
-    return new Set(defaultIds)
+    return new Set(fallback)
   }
 }
 
@@ -53,12 +62,12 @@ export default function RecommendationsList({ basePath }: Props) {
 
   const allIds = useMemo(() => allPresets.map((p) => p.id), [])
   const [enabledIds, setEnabledIds] = useState<Set<string>>(
-    () => new Set(allIds)
+    () => new Set(DEFAULT_RECOMMENDED_IDS)
   )
 
   useEffect(() => {
-    setEnabledIds(loadEnabledFromStorage(allIds))
-  }, [allIds])
+    setEnabledIds(loadEnabledFromStorage(DEFAULT_RECOMMENDED_IDS))
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -138,6 +147,7 @@ export default function RecommendationsList({ basePath }: Props) {
 
   const selectAll = () => setEnabledIds(new Set(allIds))
   const selectNone = () => setEnabledIds(new Set())
+  const selectDefault = () => setEnabledIds(new Set(DEFAULT_RECOMMENDED_IDS))
 
   if (loading) return <p>{strings.common.loading}</p>
   if (!indicators) return <p>{strings.screener.empty}</p>
@@ -149,9 +159,48 @@ export default function RecommendationsList({ basePath }: Props) {
       <header className="mb-6">
         <h2 className="text-2xl font-bold">💡 구매 추천 일괄 뷰</h2>
         <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
-          선택된 {enabledPresets.length}개 전략 중 여러 개가 동시에 매칭된 종목.
+          선택된 {enabledPresets.length}개 전략 중 여러 개가 동시에 매칭된 종목. 기본은 겹침 적은 core 시그널 6개.
         </p>
       </header>
+
+      {/* 🏆 TOP 5 리더보드 */}
+      {filtered.length > 0 && (
+        <section className="mb-10">
+          <header className="mb-4">
+            <h3 className="text-2xl font-bold">🏆 오늘의 TOP 5 추천</h3>
+            <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
+              선택된 전략 중 매칭 수가 가장 많은 상위 5개 종목
+            </p>
+          </header>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {filtered.slice(0, 5).map((r, idx) => {
+              const confidence = enabledPresets.length > 0
+                ? Math.round((r.matchedIds.length / enabledPresets.length) * 100)
+                : 0
+              return (
+                <Link key={r.code} href={`/${basePath}/stock/${r.code}`} className="block">
+                  <Card interactive padding="md" className="h-full relative">
+                    <div className="absolute top-3 right-3 text-sm font-bold text-accent-light dark:text-accent-dark">
+                      #{idx + 1}
+                    </div>
+                    <div className="font-bold text-base mb-1 pr-8 truncate">{r.name}</div>
+                    <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-3 truncate">
+                      {r.code} · {r.market}
+                    </div>
+                    <div className="font-bold text-lg mb-3">
+                      {r.price?.toLocaleString() ?? '-'}원
+                    </div>
+                    <div className="mb-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                      매칭 {r.matchedIds.length}개 · 신뢰도 {confidence}%
+                    </div>
+                    <GaugeBar value={confidence} max={100} />
+                  </Card>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <Card padding="md" className="mb-6">
         <button
@@ -167,6 +216,7 @@ export default function RecommendationsList({ basePath }: Props) {
         {showFilters && (
           <div className="mt-4 space-y-4">
             <div className="flex gap-2 flex-wrap items-center">
+              <Button variant="secondary" size="sm" onClick={selectDefault}>기본 추천</Button>
               <Button variant="secondary" size="sm" onClick={selectAll}>전체 선택</Button>
               <Button variant="secondary" size="sm" onClick={selectNone}>전체 해제</Button>
               <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark ml-auto">
