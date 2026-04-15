@@ -59,3 +59,33 @@ export interface UpdatedAtJson {
   updated_at: string
   trade_date: string
 }
+
+export interface SectorInfo {
+  sector: string
+  industry: string
+  themes: string[]
+}
+
+export interface SectorsJson {
+  [code: string]: SectorInfo
+}
+
+export interface ReturnStat {
+  avg: number
+  max: number
+  win_rate: number
+}
+
+export interface PresetPatternStats {
+  sample_count: number
+  d1: ReturnStat
+  d3: ReturnStat
+  d7: ReturnStat
+}
+
+export interface PatternStatsJson {
+  meta: { updated_at: string; lookback_days: number }
+  by_stock_preset: {
+    [code: string]: { [presetId: string]: PresetPatternStats }
+  }
+}

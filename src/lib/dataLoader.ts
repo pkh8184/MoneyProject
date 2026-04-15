@@ -1,5 +1,8 @@
 import { get, set } from 'idb-keyval'
-import type { UpdatedAtJson, IndicatorsJson, FundamentalsJson } from '@/lib/types/indicators'
+import type {
+  UpdatedAtJson, IndicatorsJson, FundamentalsJson,
+  SectorsJson, PatternStatsJson
+} from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
 
@@ -80,6 +83,37 @@ export async function loadFundamentals(tradeDate: string): Promise<FundamentalsJ
     if (!res.ok) return null
     const data = (await res.json()) as FundamentalsJson
     await setCached(IDB_FUNDAMENTALS_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_SECTORS_KEY = 'sectors-cache-v1'
+const IDB_PATTERN_STATS_KEY = 'pattern-stats-cache-v1'
+
+export async function loadSectors(tradeDate: string): Promise<SectorsJson | null> {
+  const cached = await getCached<SectorsJson>(IDB_SECTORS_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/sectors.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as SectorsJson
+    await setCached(IDB_SECTORS_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+export async function loadPatternStats(tradeDate: string): Promise<PatternStatsJson | null> {
+  const cached = await getCached<PatternStatsJson>(IDB_PATTERN_STATS_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/pattern_stats.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as PatternStatsJson
+    await setCached(IDB_PATTERN_STATS_KEY, tradeDate, data)
     return data
   } catch {
     return null
