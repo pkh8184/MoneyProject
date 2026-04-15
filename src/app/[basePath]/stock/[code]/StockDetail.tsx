@@ -2,21 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useAppStore } from '@/store/useAppStore'
 import { loadIndicators, loadFundamentals, loadUpdatedAt, loadOhlcvForCode, type SingleStockOhlcv } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import StockChart from '@/components/stock/StockChart'
 import IndicatorTable from '@/components/stock/IndicatorTable'
 import FundamentalTable from '@/components/stock/FundamentalTable'
 import MatchedPresets from '@/components/stock/MatchedPresets'
-import BeginnerGuide from '@/components/stock/BeginnerGuide'
 import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
 
 export default function StockDetail({ code, basePath }: Props) {
-  const mode = useAppStore((s) => s.mode)
   const [stock, setStock] = useState<StockIndicators | null>(null)
   const [fundamental, setFundamental] = useState<Fundamental | undefined>(undefined)
   const [ohlcvFull, setOhlcvFull] = useState<SingleStockOhlcv | null>(null)
@@ -79,25 +76,19 @@ export default function StockDetail({ code, basePath }: Props) {
         <StockChart stock={stock} ohlcvFull={ohlcvFull} />
       </section>
 
-      {mode === 'beginner' ? (
-        <BeginnerGuide stock={stock} fundamental={fundamental} />
-      ) : (
-        <>
-          <section className="mt-10">
-            <h3 className="text-xl font-bold mb-4">{strings.stock.indicators}</h3>
-            <IndicatorTable stock={stock} />
-          </section>
-          <section className="mt-10">
-            <h3 className="text-xl font-bold mb-4">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
-            <FundamentalTable fundamental={fundamental} />
-          </section>
-          <section className="mt-10">
-            <h3 className="text-xl font-bold mb-4">{strings.stock.matchedPresets}</h3>
-            <MatchedPresets stock={stock} fundamental={fundamental} />
-          </section>
-          <BowlVolumePanel stock={stock} fundamental={fundamental} />
-        </>
-      )}
+      <section className="mt-10">
+        <h3 className="text-xl font-bold mb-4">{strings.stock.indicators}</h3>
+        <IndicatorTable stock={stock} />
+      </section>
+      <section className="mt-10">
+        <h3 className="text-xl font-bold mb-4">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
+        <FundamentalTable fundamental={fundamental} />
+      </section>
+      <section className="mt-10">
+        <h3 className="text-xl font-bold mb-4">{strings.stock.matchedPresets}</h3>
+        <MatchedPresets stock={stock} fundamental={fundamental} />
+      </section>
+      <BowlVolumePanel stock={stock} fundamental={fundamental} />
     </div>
   )
 }

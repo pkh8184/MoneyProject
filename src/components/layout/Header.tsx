@@ -1,4 +1,3 @@
-import ModeToggle from './ModeToggle'
 import ThemeToggle from './ThemeToggle'
 import UpdatedAtBadge from './UpdatedAtBadge'
 import SideNav from './SideNav'
@@ -14,7 +13,6 @@ export default function Header() {
           <UpdatedAtBadge />
         </div>
         <div className="flex items-center gap-2">
-          <ModeToggle />
           <ThemeToggle />
         </div>
       </div>
