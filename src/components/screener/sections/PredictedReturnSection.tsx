@@ -13,12 +13,15 @@ interface Props {
 export default function PredictedReturnSection({ indicators, patternStats, basePath }: Props) {
   const top = useMemo(() => {
     if (!indicators || !patternStats) return []
+    const byStockPreset = patternStats.by_stock_preset
+    if (!byStockPreset || typeof byStockPreset !== 'object') return []
     const items: Array<{
       code: string; name: string; market: string; price: number | null;
       volume: number | null; rsi: number | null; score: number; tagLabel: string;
       stats: PatternStatsJson['by_stock_preset'][string][string]
     }> = []
-    for (const [code, perPreset] of Object.entries(patternStats.by_stock_preset)) {
+    for (const [code, perPreset] of Object.entries(byStockPreset)) {
+      if (!perPreset || typeof perPreset !== 'object') continue
       const stock = (indicators as any)[code] as StockIndicators | undefined
       if (!stock) continue
       let bestStats: PatternStatsJson['by_stock_preset'][string][string] | null = null

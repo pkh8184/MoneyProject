@@ -15,16 +15,19 @@ const MAX_RESULTS = 100
 
 export function runPreset(
   preset: Preset,
-  indicators: IndicatorsJson,
-  fundamentals: FundamentalsJson,
+  indicators: IndicatorsJson | null | undefined,
+  fundamentals: FundamentalsJson | null | undefined,
   params: PresetParams
 ): FilterResult[] {
+  if (!indicators || typeof indicators !== 'object') return []
+  const fundMap = fundamentals && typeof fundamentals === 'object' ? fundamentals : {}
   const results: FilterResult[] = []
 
   for (const [code, value] of Object.entries(indicators)) {
     if (code === 'meta') continue
     const stock = value as StockIndicators
-    const fundamental = fundamentals[code]
+    if (!stock || typeof stock !== 'object' || !Array.isArray(stock.close)) continue
+    const fundamental = fundMap[code]
     try {
       if (!preset.filter({ stock, fundamental, params })) continue
       const score = preset.sortScore
