@@ -48,6 +48,14 @@ export const strings = {
     empty: '조건에 맞는 종목이 없습니다',
     resultCount: (n: number) => `${n}개 종목`
   },
+  stockList: {
+    title: '수집된 종목 리스트',
+    linkLabel: '전체 종목',
+    searchPlaceholder: '종목명·코드로 검색',
+    totalCount: (n: number) => `총 ${n}개 종목`,
+    filteredCount: (matched: number, total: number) => `${matched}개 / 전체 ${total}개`,
+    empty: '수집된 종목 데이터가 없습니다'
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',
