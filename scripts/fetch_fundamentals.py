@@ -70,8 +70,18 @@ def main():
             continue
 
     if df_fund is None or df_cap is None:
-        print('[ERROR] Could not fetch fundamentals for any recent date', file=sys.stderr)
-        sys.exit(1)
+        print('[WARN] Could not fetch fundamentals for any recent date. Writing empty.', file=sys.stderr)
+        (DATA_DIR / 'fundamentals.json').write_text(json.dumps({}), encoding='utf-8')
+        updated = {
+            'updated_at': datetime.now(kst).isoformat(),
+            'trade_date': stocks['trade_date']
+        }
+        (DATA_DIR / 'updated_at.json').write_text(
+            json.dumps(updated, ensure_ascii=False),
+            encoding='utf-8'
+        )
+        print('[INFO] updated_at.json saved (with empty fundamentals)')
+        sys.exit(0)
 
     print('[INFO] Fetching net purchases (last 10 trading days)...')
     start_dt = base_dt - timedelta(days=20)
