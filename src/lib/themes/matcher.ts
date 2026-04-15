@@ -8,8 +8,9 @@ export function matchTheme(themeId: string, info: SectorInfo): boolean {
   return def.keywords.some((kw) => haystack.includes(kw.toLowerCase()))
 }
 
-export function filterStocksByTheme(sectors: SectorsJson, themeId: string): string[] {
+export function filterStocksByTheme(sectors: SectorsJson | null | undefined, themeId: string): string[] {
+  if (!sectors || typeof sectors !== 'object') return []
   return Object.entries(sectors)
-    .filter(([_, info]) => matchTheme(themeId, info))
+    .filter(([_, info]) => info && matchTheme(themeId, info))
     .map(([code]) => code)
 }
