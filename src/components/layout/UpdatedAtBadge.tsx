@@ -30,7 +30,7 @@ export default function UpdatedAtBadge() {
     strings.dataStatus.stale48h
 
   return (
-    <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark inline-flex items-center gap-1">
+    <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark inline-flex items-center gap-1">
       <span aria-hidden>{dot}</span>
       <span>{label}</span>
     </span>
