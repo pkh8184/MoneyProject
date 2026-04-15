@@ -6,6 +6,8 @@ export const goldenCross: Preset = {
   id: 'golden_cross',
   name: strings.presets.golden_cross.name,
   mode: ['expert'],
+  category: 'trend_ma',
+  shortFormula: 'MA20 > MA60 신규 돌파',
   params: [],
   description: {
     beginner: strings.presets.golden_cross.beginnerDesc,

@@ -6,6 +6,8 @@ export const rsiRebound: Preset = {
   id: 'rsi_rebound',
   name: strings.presets.rsi_rebound.name,
   mode: ['expert'],
+  category: 'indicator',
+  shortFormula: 'RSI 30 이하 → 재돌파 + MA60 상승',
   params: [],
   description: {
     beginner: strings.presets.rsi_rebound.beginnerDesc,

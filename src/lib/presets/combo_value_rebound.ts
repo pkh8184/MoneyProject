@@ -8,6 +8,8 @@ export const comboValueRebound: Preset = {
   id: 'combo_value_rebound',
   name: strings.presets.combo_value_rebound.name,
   mode: ['beginner', 'expert'],
+  category: 'combo',
+  shortFormula: 'PBR<1 + RSI 반등 + MA60 근처',
   params: [],
   description: {
     beginner: strings.presets.combo_value_rebound.beginnerDesc,

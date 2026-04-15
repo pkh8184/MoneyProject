@@ -6,6 +6,8 @@ export const alignment: Preset = {
   id: 'alignment',
   name: strings.presets.alignment.name,
   mode: ['expert'],
+  category: 'trend_ma',
+  shortFormula: 'MA5 > MA20 > MA60 > MA120 신규 완성',
   params: [],
   description: {
     beginner: strings.presets.alignment.beginnerDesc,

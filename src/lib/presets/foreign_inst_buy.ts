@@ -5,6 +5,8 @@ export const foreignInstBuy: Preset = {
   id: 'foreign_inst_buy',
   name: strings.presets.foreign_inst_buy.name,
   mode: ['expert'],
+  category: 'volume_flow',
+  shortFormula: '외국인·기관 N일 연속 순매수',
   params: [
     { key: 'N', label: '연속일 수', type: 'slider', min: 2, max: 10, step: 1, default: 3 }
   ],

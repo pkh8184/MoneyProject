@@ -8,6 +8,8 @@ export const comboGolden: Preset = {
   id: 'combo_golden',
   name: strings.presets.combo_golden.name,
   mode: ['beginner', 'expert'],
+  category: 'combo',
+  shortFormula: '골든크로스 + 거래량 급증 + RSI>50',
   params: [],
   description: {
     beginner: strings.presets.combo_golden.beginnerDesc,
