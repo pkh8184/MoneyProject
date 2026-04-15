@@ -1,63 +1,60 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import RecommendCard from '@/components/screener/RecommendCard'
-import { getBeginnerPresets } from '@/lib/presets/registry'
-import { runPreset, type FilterResult } from '@/lib/filter'
-import { loadIndicators, loadFundamentals, loadUpdatedAt } from '@/lib/dataLoader'
+import TodayRecommendSection from '@/components/screener/sections/TodayRecommendSection'
+import LongTermSection from '@/components/screener/sections/LongTermSection'
+import HighGrowthSection from '@/components/screener/sections/HighGrowthSection'
+import ThemeSection from '@/components/screener/sections/ThemeSection'
+import PredictedReturnSection from '@/components/screener/sections/PredictedReturnSection'
+import {
+  loadIndicators, loadFundamentals, loadUpdatedAt,
+  loadSectors, loadPatternStats
+} from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
-
-interface TaggedResult extends FilterResult {
-  presetId: string
-  tagLabel: string
-}
+import type {
+  IndicatorsJson, FundamentalsJson, SectorsJson, PatternStatsJson
+} from '@/lib/types/indicators'
 
 export default function BeginnerScreener() {
   const params = useParams()
   const basePath = (params?.basePath as string) || ''
-  const [results, setResults] = useState<TaggedResult[]>([])
+  const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
+  const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
+  const [sectors, setSectors] = useState<SectorsJson | null>(null)
+  const [patternStats, setPatternStats] = useState<PatternStatsJson | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const presets = useMemo(() => getBeginnerPresets(), [])
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund] = await Promise.all([
+      const [ind, fund, sec, ps] = await Promise.all([
         loadIndicators(u.trade_date),
-        loadFundamentals(u.trade_date)
+        loadFundamentals(u.trade_date),
+        loadSectors(u.trade_date),
+        loadPatternStats(u.trade_date)
       ])
-      if (!ind) { setLoading(false); return }
-      const tagged: TaggedResult[] = []
-      for (const preset of presets) {
-        const res = runPreset(preset, ind, fund ?? {}, {})
-        for (const r of res) {
-          tagged.push({ ...r, presetId: preset.id, tagLabel: preset.description.beginner })
-        }
-      }
-      const seen = new Set<string>()
-      const dedup = tagged.filter((r) => {
-        if (seen.has(r.code)) return false
-        seen.add(r.code)
-        return true
-      })
-      setResults(dedup.slice(0, 24))
+      setIndicators(ind)
+      setFundamentals(fund ?? {})
+      setSectors(sec)
+      setPatternStats(ps)
       setLoading(false)
     })
-  }, [presets])
+  }, [])
 
   if (loading) return <p>{strings.common.loading}</p>
-  if (results.length === 0) return <p>{strings.screener.empty}</p>
+  if (!indicators) return <p>{strings.screener.empty}</p>
 
   return (
-    <>
-      <h2 className="text-lg font-bold mb-4">{strings.screener.beginnerTitle}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {results.map((r) => (
-          <RecommendCard key={r.code} result={r} tagLabel={r.tagLabel} basePath={basePath} />
-        ))}
-      </div>
-    </>
+    <div className="space-y-10">
+      <TodayRecommendSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
+      <LongTermSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
+      <HighGrowthSection indicators={indicators} fundamentals={fundamentals} patternStats={patternStats} basePath={basePath} />
+      <ThemeSection indicators={indicators} fundamentals={fundamentals} sectors={sectors} patternStats={patternStats} basePath={basePath} />
+      <PredictedReturnSection indicators={indicators} patternStats={patternStats} basePath={basePath} />
+      <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark pt-8 border-t border-border-light dark:border-border-dark">
+        * 모든 예측 수익률은 과거 통계 기반 참고치이며, 미래 수익을 보장하지 않습니다.
+      </p>
+    </div>
   )
 }

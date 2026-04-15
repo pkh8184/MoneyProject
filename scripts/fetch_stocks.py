@@ -133,7 +133,7 @@ def main():
     today = datetime.now(kst).strftime('%Y-%m-%d')
     ymd = today.replace('-', '')
 
-    start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=365)
+    start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=1100)
     start_ymd = start_dt.strftime('%Y%m%d')
 
     print(f'[INFO] Fetching tickers for {today}...')
