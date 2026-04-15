@@ -53,6 +53,116 @@ export const strings = {
     description: '이번 달 무료 사용 한도에 근접하여 서비스가 일시 중단되었습니다.',
     resumeLabel: '재개 예정',
     contactLabel: '긴급 문의'
+  },
+  presets: {
+    golden_cross: {
+      name: '골든크로스 (MA20↑MA60)',
+      beginnerDesc: '단기 상승 신호가 처음 나타난 종목',
+      expertDesc: '20일선이 60일선을 상향 돌파한 종목 (오늘)',
+      buyTiming: '돌파 당일 종가 또는 다음 날 시초가',
+      holdingPeriod: '2주~3개월',
+      stopLoss: 'MA20 재하향 이탈 시',
+      traps: '횡보장에서 가짜 신호 발생. 거래량 조건 결합 권장'
+    },
+    alignment: {
+      name: '정배열 확정 (MA5>MA20>MA60>MA120)',
+      beginnerDesc: '추세가 정식 확정된 종목',
+      expertDesc: '4개 이평선이 정배열 완성된 첫날',
+      buyTiming: '정배열 유지되면서 MA20 터치 후 반등 시점',
+      holdingPeriod: '1~6개월',
+      stopLoss: 'MA20 하향 이탈',
+      traps: '이미 많이 오른 종목은 피크 근접 위험'
+    },
+    ma60_turn_up: {
+      name: '60일선 상승 전환',
+      beginnerDesc: '중기 추세가 상승으로 바뀐 종목',
+      expertDesc: 'MA60 기울기 음→양 전환',
+      buyTiming: '전환 후 첫 눌림목',
+      holdingPeriod: '1~3개월',
+      stopLoss: 'MA60 재하향',
+      traps: '신호 빈도 낮음'
+    },
+    high_52w: {
+      name: '52주 신고가 돌파',
+      beginnerDesc: '1년 내 최고가에 근접한 종목',
+      expertDesc: '종가가 52주 신고가의 N% 이상',
+      buyTiming: '돌파 당일 또는 눌림',
+      holdingPeriod: '수일~1개월',
+      stopLoss: '돌파 당일 저가 이탈',
+      traps: '돌파 실패 시 급락 위험'
+    },
+    volume_spike: {
+      name: '거래량 급증',
+      beginnerDesc: '거래량이 평소보다 크게 늘어난 종목',
+      expertDesc: '양봉 + 거래량이 20일 평균의 K배 이상',
+      buyTiming: '급증 발생일 종가 또는 다음 날 눌림',
+      holdingPeriod: '3일~3주',
+      stopLoss: '급증 봉 저가 이탈',
+      traps: '음봉 + 거래량 급증은 매도 신호'
+    },
+    foreign_inst_buy: {
+      name: '외국인·기관 동반 순매수',
+      beginnerDesc: '큰 손이 함께 사는 종목',
+      expertDesc: '최근 N일 외국인·기관 모두 순매수',
+      buyTiming: '연속 매수 3~5일차',
+      holdingPeriod: '1주~1개월',
+      stopLoss: '순매도 전환',
+      traps: '단기 차익실현 가능성'
+    },
+    rsi_rebound: {
+      name: 'RSI 과매도 반등',
+      beginnerDesc: '과매도 구간 후 반등 시작',
+      expertDesc: 'RSI 30 이하에서 재돌파, MA60 상승 추세',
+      buyTiming: '30 재돌파 당일',
+      holdingPeriod: '1주~1개월',
+      stopLoss: '직전 저점 이탈',
+      traps: '하락 추세 중 과매도는 더 깊어질 수 있음'
+    },
+    macd_cross: {
+      name: 'MACD 골든크로스',
+      beginnerDesc: '상승 추세 시작 신호',
+      expertDesc: 'MACD 라인이 Signal 라인 상향 돌파',
+      buyTiming: '돌파일 종가',
+      holdingPeriod: '2주~2개월',
+      stopLoss: '재데드크로스',
+      traps: '횡보장에서 신호 남발'
+    },
+    bb_lower_bounce: {
+      name: '볼린저밴드 하단 복귀',
+      beginnerDesc: '저점에서 반등 시작',
+      expertDesc: '하단 이탈 후 밴드 내 재진입',
+      buyTiming: '재진입 당일 종가',
+      holdingPeriod: '수일~3주',
+      stopLoss: '하단 재이탈',
+      traps: '강한 하락 추세에서는 계속 하단 이탈'
+    },
+    low_pbr: {
+      name: 'PBR 저평가',
+      beginnerDesc: '자산 대비 저평가된 종목',
+      expertDesc: 'PBR < K (파라미터)',
+      buyTiming: '기술적 신호와 결합 시',
+      holdingPeriod: '중장기',
+      stopLoss: '업종 악재 발생 시',
+      traps: '저 PBR은 저평가가 아닌 구조적 문제일 수도'
+    },
+    combo_golden: {
+      name: '⭐ 중장기 황금 조합',
+      beginnerDesc: '가장 신뢰할 수 있는 중장기 상승 신호',
+      expertDesc: '골든크로스 + 거래량 급증 + RSI>50',
+      buyTiming: '조건 일치 당일 종가',
+      holdingPeriod: '1~3개월',
+      stopLoss: 'MA20 이탈',
+      traps: '조건이 겹칠 확률 낮음 (희소 신호)'
+    },
+    combo_value_rebound: {
+      name: '⭐ 저평가 반등',
+      beginnerDesc: '저평가에서 반등 시작',
+      expertDesc: 'PBR<1 + RSI 반등 + MA60 지지',
+      buyTiming: '반등 당일 종가',
+      holdingPeriod: '1~6개월',
+      stopLoss: 'MA60 하향 이탈',
+      traps: '구조적 저 PBR 종목은 반등이 약할 수 있음'
+    }
   }
 } as const
 
