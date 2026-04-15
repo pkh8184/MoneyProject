@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { allPresets } from '@/lib/presets/registry'
+import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
 import { runPreset } from '@/lib/filter'
 import {
   loadIndicators, loadFundamentals, loadUpdatedAt
 } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import type {
-  IndicatorsJson, FundamentalsJson, StockIndicators
+  IndicatorsJson, FundamentalsJson
 } from '@/lib/types/indicators'
 
 interface Props { basePath: string }
@@ -23,11 +24,44 @@ interface AggRow {
   matchedNames: string[]
 }
 
+const LS_KEY = 'recommendations-enabled-presets-v1'
+
+function loadEnabledFromStorage(defaultIds: string[]): Set<string> {
+  if (typeof window === 'undefined') return new Set(defaultIds)
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    if (!raw) return new Set(defaultIds)
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return new Set(defaultIds)
+    const valid = arr.filter((id) => defaultIds.includes(id))
+    return new Set(valid.length > 0 ? valid : defaultIds)
+  } catch {
+    return new Set(defaultIds)
+  }
+}
+
 export default function RecommendationsList({ basePath }: Props) {
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
   const [loading, setLoading] = useState(true)
   const [minMatches, setMinMatches] = useState(2)
+  const [showFilters, setShowFilters] = useState(false)
+
+  const allIds = useMemo(() => allPresets.map((p) => p.id), [])
+  const [enabledIds, setEnabledIds] = useState<Set<string>>(
+    () => new Set(allIds)
+  )
+
+  // localStorage 복원 (클라이언트 only)
+  useEffect(() => {
+    setEnabledIds(loadEnabledFromStorage(allIds))
+  }, [allIds])
+
+  // 변경 시 저장
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(LS_KEY, JSON.stringify(Array.from(enabledIds)))
+  }, [enabledIds])
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
@@ -42,11 +76,16 @@ export default function RecommendationsList({ basePath }: Props) {
     })
   }, [])
 
+  const enabledPresets = useMemo(
+    () => allPresets.filter((p) => enabledIds.has(p.id)),
+    [enabledIds]
+  )
+
   const rows = useMemo<AggRow[]>(() => {
     if (!indicators) return []
     const byCode = new Map<string, AggRow>()
 
-    for (const preset of allPresets) {
+    for (const preset of enabledPresets) {
       const results = runPreset(preset, indicators, fundamentals, {})
       for (const r of results) {
         const existing = byCode.get(r.code)
@@ -69,25 +108,133 @@ export default function RecommendationsList({ basePath }: Props) {
     const all = Array.from(byCode.values())
     all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
     return all
-  }, [indicators, fundamentals])
+  }, [indicators, fundamentals, enabledPresets])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),
     [rows, minMatches]
   )
 
+  const togglePreset = (id: string) => {
+    setEnabledIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleCategory = (ids: string[]) => {
+    setEnabledIds((prev) => {
+      const next = new Set(prev)
+      const allOn = ids.every((id) => next.has(id))
+      if (allOn) ids.forEach((id) => next.delete(id))
+      else ids.forEach((id) => next.add(id))
+      return next
+    })
+  }
+
+  const selectAll = () => setEnabledIds(new Set(allIds))
+  const selectNone = () => setEnabledIds(new Set())
+
   if (loading) return <p>{strings.common.loading}</p>
   if (!indicators) return <p>{strings.screener.empty}</p>
+
+  const grouped = groupByCategory(enabledPresets.length === allPresets.length ? allPresets : allPresets)
 
   return (
     <div>
       <header className="mb-4">
         <h2 className="text-xl font-bold">💡 구매 추천 일괄 뷰</h2>
         <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">
-          20개 전략 중 여러 개가 동시에 매칭된 종목 순 정렬. 매칭 수가 많을수록 신뢰도가 높습니다.
+          선택된 {enabledPresets.length}개 전략 중 여러 개가 동시에 매칭된 종목 순 정렬.
         </p>
       </header>
 
+      {/* 필터 설정 패널 */}
+      <div className="mb-4 border border-border-light dark:border-border-dark rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-2 text-sm bg-bg-secondary-light dark:bg-bg-secondary-dark hover:opacity-80"
+        >
+          <span className="font-bold">
+            🔘 전략 필터 ({enabledPresets.length}/{allPresets.length} 선택됨)
+          </span>
+          <span>{showFilters ? '▴' : '▾'}</span>
+        </button>
+        {showFilters && (
+          <div className="p-4 space-y-4">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={selectAll}
+                className="text-xs px-3 py-1 rounded-md border border-border-light dark:border-border-dark hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark"
+              >
+                전체 선택
+              </button>
+              <button
+                type="button"
+                onClick={selectNone}
+                className="text-xs px-3 py-1 rounded-md border border-border-light dark:border-border-dark hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark"
+              >
+                전체 해제
+              </button>
+              <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark ml-auto self-center">
+                해제된 전략은 매칭 점수에서 제외됩니다
+              </span>
+            </div>
+
+            {grouped.map(({ category, items }) => {
+              const meta = CATEGORY_META[category]
+              const ids = items.map((p) => p.id)
+              const allOn = ids.every((id) => enabledIds.has(id))
+              const someOn = ids.some((id) => enabledIds.has(id))
+              return (
+                <div key={category}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(ids)}
+                    className="text-xs font-bold mb-2 hover:underline"
+                  >
+                    {meta.icon} {meta.label} [{allOn ? '전체 해제' : someOn ? '전체 선택' : '전체 선택'}]
+                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {items.map((p) => {
+                      const on = enabledIds.has(p.id)
+                      return (
+                        <label
+                          key={p.id}
+                          className={`flex items-start gap-2 text-xs p-2 rounded-md border cursor-pointer ${
+                            on
+                              ? 'border-accent-light dark:border-accent-dark bg-bg-secondary-light dark:bg-bg-secondary-dark'
+                              : 'border-border-light dark:border-border-dark opacity-60'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() => togglePreset(p.id)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{p.name}</div>
+                            <div className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark truncate">
+                              {p.shortFormula}
+                            </div>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 최소 매칭 수 + 결과 개수 */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
           최소 매칭 수
@@ -111,7 +258,11 @@ export default function RecommendationsList({ basePath }: Props) {
         </span>
       </div>
 
-      {filtered.length === 0 ? (
+      {enabledPresets.length === 0 ? (
+        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+          선택된 전략이 없습니다. 필터 패널에서 1개 이상 선택해주세요.
+        </p>
+      ) : filtered.length === 0 ? (
         <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
           조건에 맞는 종목이 없습니다. 최소 매칭 수를 낮춰보세요.
         </p>
