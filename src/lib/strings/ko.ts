@@ -48,6 +48,23 @@ export const strings = {
     empty: '조건에 맞는 종목이 없습니다',
     resultCount: (n: number) => `${n}개 종목`
   },
+  stock: {
+    backToScreener: '← 검색기로',
+    currentPrice: '현재가',
+    marketCap: '시가총액',
+    indicators: '주요 지표',
+    fundamentals: '펀더멘털',
+    supply: '수급',
+    matchedPresets: '매칭된 프리셋',
+    noMatches: '매칭된 프리셋 없음',
+    notFound: '종목을 찾을 수 없습니다',
+    beginnerWhyNow: '💡 지금 관심있게 볼 이유',
+    beginnerGuide: '📘 참고 가이드',
+    buyTiming: '매수 타이밍',
+    holdingPeriod: '보유 기간',
+    stopLoss: '손절 기준',
+    caution: '⚠️ 투자 판단은 본인 책임입니다'
+  },
   maintenance: {
     title: '🛠️ 서비스 일시 중단 중입니다',
     description: '이번 달 무료 사용 한도에 근접하여 서비스가 일시 중단되었습니다.',
