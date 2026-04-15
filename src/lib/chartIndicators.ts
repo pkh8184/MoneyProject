@@ -3,6 +3,62 @@
  * Python 파이프라인과 동일한 공식을 유지.
  */
 
+export type Timeframe = 'day' | 'week' | 'month'
+
+export interface OhlcvSeries {
+  dates: string[]
+  open: number[]
+  high: number[]
+  low: number[]
+  close: number[]
+  volume: number[]
+}
+
+function weekKey(dateIso: string): string {
+  // dateIso = 'YYYY-MM-DD' → ISO 주 기준 월요일 날짜
+  const d = new Date(dateIso + 'T00:00:00Z')
+  const dayOfWeek = d.getUTCDay() // 0=Sun ~ 6=Sat
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  const monday = new Date(d)
+  monday.setUTCDate(d.getUTCDate() + mondayOffset)
+  return monday.toISOString().slice(0, 10)
+}
+
+export function aggregateOhlcv(src: OhlcvSeries, timeframe: Timeframe): OhlcvSeries {
+  if (timeframe === 'day') return src
+  const keyOf = (d: string) =>
+    timeframe === 'week' ? weekKey(d) : d.slice(0, 7) // 'YYYY-MM'
+
+  const map = new Map<string, { date: string; open: number; high: number; low: number; close: number; volume: number }>()
+  for (let i = 0; i < src.dates.length; i++) {
+    const key = keyOf(src.dates[i])
+    const g = map.get(key)
+    const o = src.open[i] ?? src.close[i]
+    const h = src.high[i] ?? src.close[i]
+    const l = src.low[i] ?? src.close[i]
+    const c = src.close[i]
+    const v = src.volume[i] ?? 0
+    if (!g) {
+      map.set(key, { date: src.dates[i], open: o, high: h, low: l, close: c, volume: v })
+    } else {
+      g.high = Math.max(g.high, h)
+      g.low = Math.min(g.low, l)
+      g.close = c
+      g.volume += v
+      g.date = src.dates[i]
+    }
+  }
+  const sorted = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date))
+  return {
+    dates: sorted.map((g) => g.date),
+    open: sorted.map((g) => g.open),
+    high: sorted.map((g) => g.high),
+    low: sorted.map((g) => g.low),
+    close: sorted.map((g) => g.close),
+    volume: sorted.map((g) => g.volume)
+  }
+}
+
 export function computeMA(closes: number[], window: number): (number | null)[] {
   const out: (number | null)[] = new Array(closes.length).fill(null)
   let sum = 0

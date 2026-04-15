@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createChart, type IChartApi, ColorType, LineStyle,
   type ISeriesApi, CrosshairMode
@@ -8,7 +8,10 @@ import {
 import { useAppStore } from '@/store/useAppStore'
 import type { StockIndicators } from '@/lib/types/indicators'
 import type { SingleStockOhlcv } from '@/lib/dataLoader'
-import { computeMA, computeRSI, computeMACD, computeBB } from '@/lib/chartIndicators'
+import {
+  computeMA, computeRSI, computeMACD, computeBB,
+  aggregateOhlcv, type Timeframe
+} from '@/lib/chartIndicators'
 
 interface Props {
   stock: StockIndicators
@@ -53,54 +56,52 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
   const theme = useAppStore((s) => s.theme)
   const mode = useAppStore((s) => s.mode)
   const showAllPanes = mode === 'expert'
+  const [timeframe, setTimeframe] = useState<Timeframe>('day')
 
   // 데이터 소스: ohlcvFull(3년)이 있으면 그거, 없으면 stock(30일) 폴백
   const dataSource = useMemo(() => {
+    let series: {
+      dates: string[]
+      open: number[]
+      high: number[]
+      low: number[]
+      close: number[]
+      volume: number[]
+    }
+
     if (ohlcvFull && ohlcvFull.dates.length > 0) {
-      const closes = ohlcvFull.close
-      const ma5 = computeMA(closes, 5)
-      const ma20 = computeMA(closes, 20)
-      const ma60 = computeMA(closes, 60)
-      const ma120 = computeMA(closes, 120)
-      const rsi14 = computeRSI(closes, 14)
-      const macd = computeMACD(closes)
-      const bb = computeBB(closes, 20, 2)
-      return {
-        dates: ohlcvFull.dates,
-        open: ohlcvFull.open,
-        high: ohlcvFull.high,
-        low: ohlcvFull.low,
-        close: ohlcvFull.close,
-        volume: ohlcvFull.volume,
-        ma5, ma20, ma60, ma120,
-        rsi14,
-        macd_line: macd.line,
-        macd_signal: macd.signal,
-        macd_hist: macd.hist,
-        bb_upper: bb.upper,
-        bb_lower: bb.lower
+      series = ohlcvFull
+    } else {
+      series = {
+        dates: stock.dates,
+        open: stock.open ?? stock.close,
+        high: stock.high ?? stock.close,
+        low: stock.low ?? stock.close,
+        close: stock.close,
+        volume: stock.volume
       }
     }
-    // Fallback: 30일 indicators.json
+
+    const agg = aggregateOhlcv(series, timeframe)
+    const closes = agg.close
+    const ma5 = computeMA(closes, 5)
+    const ma20 = computeMA(closes, 20)
+    const ma60 = computeMA(closes, 60)
+    const ma120 = computeMA(closes, 120)
+    const rsi14 = computeRSI(closes, 14)
+    const macd = computeMACD(closes)
+    const bb = computeBB(closes, 20, 2)
     return {
-      dates: stock.dates,
-      open: stock.open ?? stock.close,
-      high: stock.high ?? stock.close,
-      low: stock.low ?? stock.close,
-      close: stock.close,
-      volume: stock.volume,
-      ma5: stock.ma5,
-      ma20: stock.ma20,
-      ma60: stock.ma60,
-      ma120: stock.ma120,
-      rsi14: stock.rsi14,
-      macd_line: stock.macd_line,
-      macd_signal: stock.macd_signal,
-      macd_hist: stock.macd_hist,
-      bb_upper: stock.bb_upper,
-      bb_lower: stock.bb_lower
+      ...agg,
+      ma5, ma20, ma60, ma120,
+      rsi14,
+      macd_line: macd.line,
+      macd_signal: macd.signal,
+      macd_hist: macd.hist,
+      bb_upper: bb.upper,
+      bb_lower: bb.lower
     }
-  }, [stock, ohlcvFull])
+  }, [stock, ohlcvFull, timeframe])
 
   useEffect(() => {
     if (!mainRef.current) return
@@ -270,11 +271,32 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
     }
   }, [dataSource, theme, mode, showAllPanes])
 
-  const dayCount = dataSource.dates.length
-  const rangeLabel = dayCount > 400 ? '3년' : dayCount > 150 ? '1년' : `${dayCount}일`
+  const barCount = dataSource.dates.length
+  const unitLabel = timeframe === 'day' ? '거래일' : timeframe === 'week' ? '주' : '개월'
+  const tfOptions: { key: Timeframe; label: string }[] = [
+    { key: 'day', label: '일봉' },
+    { key: 'week', label: '주봉' },
+    { key: 'month', label: '월봉' }
+  ]
 
   return (
     <div className="w-full space-y-1">
+      <div className="flex items-center gap-1 mb-2">
+        {tfOptions.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setTimeframe(opt.key)}
+            className={`text-xs px-3 py-1 rounded-md border ${
+              timeframe === opt.key
+                ? 'bg-accent-light dark:bg-accent-dark text-white border-transparent'
+                : 'border-border-light dark:border-border-dark hover:bg-bg-secondary-light dark:hover:bg-bg-secondary-dark'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
       <div ref={mainRef} className="w-full" />
       <div ref={volRef} className="w-full" />
       {showAllPanes && (
@@ -284,7 +306,7 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
         </>
       )}
       <div className="flex flex-wrap gap-3 text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">
-        <span>범위: {rangeLabel} ({dayCount}거래일)</span>
+        <span>{barCount}{unitLabel} 표시</span>
         {showAllPanes ? (
           <>
             <span>📈 캔들·MA5/20/60/120·BB</span>
