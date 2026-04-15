@@ -11,13 +11,22 @@ import { lowPbr } from './low_pbr'
 import { comboGolden } from './combo_golden'
 import { comboValueRebound } from './combo_value_rebound'
 import { bowlPattern } from './bowl_pattern'
+import { pullbackBuy } from './pullback_buy'
+import { prevHighBreak } from './prev_high_break'
+import { vShapeRebound } from './v_shape_rebound'
+import { tradingValueSpike } from './trading_value_spike'
+import { macdHistPositive } from './macd_hist_positive'
+import { lowPer } from './low_per'
+import { safeLargeCap } from './safe_large_cap'
 import type { Preset } from './types'
 
 export const allPresets: Preset[] = [
   goldenCross, alignment, ma60TurnUp, high52w,
   volumeSpike, foreignInstBuy, rsiRebound, macdCross,
   bbLowerBounce, lowPbr, comboGolden, comboValueRebound,
-  bowlPattern
+  bowlPattern,
+  pullbackBuy, prevHighBreak, vShapeRebound, tradingValueSpike,
+  macdHistPositive, lowPer, safeLargeCap
 ]
 
 export const presetMap: Record<string, Preset> = Object.fromEntries(
