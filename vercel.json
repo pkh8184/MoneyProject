@@ -1,0 +1,5 @@
+{
+  "buildCommand": "bash scripts/build-with-data.sh",
+  "installCommand": "npm install",
+  "framework": "nextjs"
+}
