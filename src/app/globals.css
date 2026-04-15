@@ -1,6 +1,19 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body { @apply bg-bg-primary-light text-text-primary-light; }
+html, body {
+  @apply bg-bg-primary-light text-text-primary-light;
+  font-family: 'Pretendard', 'Pretendard JP', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'tnum';
+}
 html.dark, html.dark body { @apply bg-bg-primary-dark text-text-primary-dark; }
+
+button, input, select, textarea {
+  font-family: inherit;
+}
