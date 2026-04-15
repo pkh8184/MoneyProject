@@ -6,6 +6,8 @@ export const bbLowerBounce: Preset = {
   id: 'bb_lower_bounce',
   name: strings.presets.bb_lower_bounce.name,
   mode: ['expert'],
+  category: 'pattern',
+  shortFormula: '밴드 하단 이탈 → 재진입',
   params: [],
   description: {
     beginner: strings.presets.bb_lower_bounce.beginnerDesc,

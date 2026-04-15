@@ -6,6 +6,8 @@ export const ma60TurnUp: Preset = {
   id: 'ma60_turn_up',
   name: strings.presets.ma60_turn_up.name,
   mode: ['expert'],
+  category: 'trend_ma',
+  shortFormula: 'MA60 기울기 음→양 전환',
   params: [],
   description: {
     beginner: strings.presets.ma60_turn_up.beginnerDesc,

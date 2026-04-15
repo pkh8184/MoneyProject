@@ -6,6 +6,8 @@ export const high52w: Preset = {
   id: 'high_52w',
   name: strings.presets.high_52w.name,
   mode: ['expert'],
+  category: 'pattern',
+  shortFormula: '종가 ≥ 52주 최고 × N%',
   params: [
     { key: 'ratio', label: '신고가 근접도', type: 'slider', min: 0.8, max: 1.0, step: 0.01, default: 1.0 }
   ],

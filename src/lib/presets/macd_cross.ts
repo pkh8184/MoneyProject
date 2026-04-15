@@ -6,6 +6,8 @@ export const macdCross: Preset = {
   id: 'macd_cross',
   name: strings.presets.macd_cross.name,
   mode: ['expert'],
+  category: 'indicator',
+  shortFormula: 'MACD 라인 > Signal 신규 돌파',
   params: [
     { key: 'above_zero', label: '0선 이상만', type: 'toggle', default: false }
   ],

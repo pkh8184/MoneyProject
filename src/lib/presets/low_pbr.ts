@@ -5,6 +5,8 @@ export const lowPbr: Preset = {
   id: 'low_pbr',
   name: strings.presets.low_pbr.name,
   mode: ['expert'],
+  category: 'value',
+  shortFormula: 'PBR < K',
   params: [
     { key: 'K', label: 'PBR 기준', type: 'slider', min: 0.5, max: 1.5, step: 0.05, default: 1.0 }
   ],

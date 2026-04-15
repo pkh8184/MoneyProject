@@ -6,6 +6,8 @@ export const volumeSpike: Preset = {
   id: 'volume_spike',
   name: strings.presets.volume_spike.name,
   mode: ['expert'],
+  category: 'volume_flow',
+  shortFormula: '거래량 ≥ 20일 평균 × K + 양봉',
   params: [
     { key: 'K', label: '거래량 배수', type: 'slider', min: 1.2, max: 3.0, step: 0.1, default: 1.5 }
   ],

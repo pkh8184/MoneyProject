@@ -1,5 +1,13 @@
 export type ModeKey = 'beginner' | 'expert'
 
+export type PresetCategory =
+  | 'trend_ma'
+  | 'pattern'
+  | 'volume_flow'
+  | 'indicator'
+  | 'value'
+  | 'combo'
+
 export interface ParamDef {
   key: string
   label: string
@@ -26,6 +34,8 @@ export interface PresetMeta {
   id: string
   name: string
   mode: ModeKey[]
+  category: PresetCategory           // NEW REQUIRED
+  shortFormula: string               // NEW REQUIRED
   params: ParamDef[]
   description: PresetDescription
   buyTiming: string

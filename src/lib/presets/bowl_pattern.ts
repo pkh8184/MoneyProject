@@ -12,6 +12,8 @@ export const bowlPattern: Preset = {
   id: 'bowl_pattern',
   name: 'Beta 🍚 밥그릇 패턴',
   mode: ['beginner', 'expert'],
+  category: 'pattern',
+  shortFormula: 'MA224 부근 90일 저점 + 3% 회복',
   beta: true,
   params: [],
   description: {
