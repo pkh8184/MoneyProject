@@ -15,6 +15,8 @@ FILES=(
   "indicators.json"
   "fundamentals.json"
   "updated_at.json"
+  "sectors.json"
+  "pattern_stats.json"
 )
 
 for file in "${FILES[@]}"; do
