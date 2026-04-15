@@ -71,9 +71,9 @@ export default function StockChart({ stock }: Props) {
     })
     const candleData = stock.dates.map((d, i) => ({
       time: d,
-      open: stock.close[i],
-      high: stock.close[i],
-      low: stock.close[i],
+      open: stock.open?.[i] ?? stock.close[i],
+      high: stock.high?.[i] ?? stock.close[i],
+      low: stock.low?.[i] ?? stock.close[i],
       close: stock.close[i]
     }))
     candle.setData(candleData as any)
