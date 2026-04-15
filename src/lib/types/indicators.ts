@@ -38,6 +38,12 @@ export interface StockIndicators {
   bowl_low_90d?: number | null
   bowl_days_since_low?: number | null
   bowl_vol_recovery?: number | null
+  bowl_vol_dryup_ratio?: number | null
+  bowl_vol_explosion_ratio?: number | null
+  bowl_value_expansion_ratio?: number | null
+  bowl_accumulation_bars?: number | null
+  bowl_volume_slope?: number | null
+  bowl_volume_score?: number | null
   vol_avg20: number | null
 }
 
