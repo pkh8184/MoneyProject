@@ -1,5 +1,9 @@
-pykrx>=1.0.45
+pykrx==1.0.45
+finance-datareader>=0.9.90
 pandas==2.2.2
 numpy==1.26.4
 pytz==2024.1
 pytest==8.2.2
+lxml>=5.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0

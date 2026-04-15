@@ -32,13 +32,73 @@ def filter_valid_tickers(candidates: list[tuple[str, str]]) -> list[tuple[str, s
 
 
 def get_all_candidates(date_str: str) -> list[tuple[str, str]]:
-    """KOSPI + KOSDAQ 전 종목 조회."""
+    """KOSPI + KOSDAQ 전 종목 조회. pykrx 실패 시 FinanceDataReader로 폴백."""
     ymd = date_str.replace('-', '')
-    codes_kospi = stock.get_market_ticker_list(ymd, market='KOSPI')
-    codes_kosdaq = stock.get_market_ticker_list(ymd, market='KOSDAQ')
+    try:
+        codes_kospi = stock.get_market_ticker_list(ymd, market='KOSPI')
+        codes_kosdaq = stock.get_market_ticker_list(ymd, market='KOSDAQ')
+    except Exception as e:
+        print(f'[WARN] pykrx ticker list failed: {e}', file=sys.stderr)
+        codes_kospi = []
+        codes_kosdaq = []
+
     all_codes = codes_kospi + codes_kosdaq
-    candidates = [(c, stock.get_market_ticker_name(c)) for c in all_codes]
-    return candidates
+    if len(all_codes) > 100:
+        # pykrx 정상 동작
+        candidates = []
+        for c in all_codes:
+            try:
+                name = stock.get_market_ticker_name(c)
+                candidates.append((c, name))
+            except Exception:
+                continue
+        return candidates
+
+    # pykrx가 빈 결과 반환 → FinanceDataReader 폴백
+    print('[WARN] pykrx returned empty/insufficient, falling back to FinanceDataReader', file=sys.stderr)
+    try:
+        import FinanceDataReader as fdr
+        df_kospi = fdr.StockListing('KOSPI')
+        df_kosdaq = fdr.StockListing('KOSDAQ')
+        candidates = []
+        for df in (df_kospi, df_kosdaq):
+            if df is None or df.empty:
+                continue
+            code_col = 'Code' if 'Code' in df.columns else df.columns[0]
+            name_col = 'Name' if 'Name' in df.columns else df.columns[1]
+            for _, row in df.iterrows():
+                code = str(row[code_col]).zfill(6)
+                name = str(row[name_col]) if row[name_col] else ''
+                if code and name:
+                    candidates.append((code, name))
+        print(f'[INFO] FinanceDataReader provided {len(candidates)} candidates', file=sys.stderr)
+        return candidates
+    except Exception as e:
+        print(f'[ERROR] FinanceDataReader fallback also failed: {e}', file=sys.stderr)
+        return []
+
+
+def get_market_maps(ymd: str) -> dict[str, str]:
+    """KOSPI/KOSDAQ 구분 매핑. pykrx 실패 시 FDR 폴백."""
+    market_map: dict[str, str] = {}
+    try:
+        for code in stock.get_market_ticker_list(ymd, market='KOSPI'):
+            market_map[code] = 'KOSPI'
+        for code in stock.get_market_ticker_list(ymd, market='KOSDAQ'):
+            market_map[code] = 'KOSDAQ'
+    except Exception:
+        pass
+
+    if len(market_map) < 100:
+        try:
+            import FinanceDataReader as fdr
+            for code in fdr.StockListing('KOSPI')['Code']:
+                market_map[str(code).zfill(6)] = 'KOSPI'
+            for code in fdr.StockListing('KOSDAQ')['Code']:
+                market_map[str(code).zfill(6)] = 'KOSDAQ'
+        except Exception as e:
+            print(f'[WARN] FDR market map fallback failed: {e}', file=sys.stderr)
+    return market_map
 
 
 def fetch_ohlcv(code: str, start_ymd: str, end_ymd: str, retries: int = 3) -> dict | None:
@@ -83,11 +143,7 @@ def main():
     valid = filter_valid_tickers(candidates)
     print(f'[INFO] After filter: {len(valid)}')
 
-    market_map = {}
-    for code in stock.get_market_ticker_list(ymd, market='KOSPI'):
-        market_map[code] = 'KOSPI'
-    for code in stock.get_market_ticker_list(ymd, market='KOSDAQ'):
-        market_map[code] = 'KOSDAQ'
+    market_map = get_market_maps(ymd)
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     stocks_json = {
