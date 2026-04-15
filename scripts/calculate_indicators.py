@@ -9,6 +9,9 @@ from pathlib import Path
 from datetime import datetime
 import pytz
 import pandas as pd
+import numpy as np
+
+from bowl_volume import analyze_bowl_volume, compute_bowl_volume_score
 
 DATA_DIR = Path(__file__).resolve().parent.parent / 'public' / 'data'
 
@@ -88,6 +91,7 @@ def process_single_stock(
         return None
 
     df = pd.DataFrame({
+        'open':   ohlcv['open'],
         'close':  ohlcv['close'],
         'volume': ohlcv['volume']
     }, index=pd.to_datetime(ohlcv['dates']))
@@ -126,6 +130,24 @@ def process_single_stock(
         if vol_near_low and vol_near_low > 0:
             bowl_vol_recovery = round(float(vol_recent5 / vol_near_low), 2)
 
+    # Bowl volume v2 심화 분석
+    bowl_vol_metrics = {
+        'bowl_vol_dryup_ratio': None,
+        'bowl_vol_explosion_ratio': None,
+        'bowl_value_expansion_ratio': None,
+        'bowl_accumulation_bars': 0,
+        'bowl_volume_slope': None
+    }
+    bowl_volume_score = 0
+    if bowl_days_since_low is not None and len(df) >= 90:
+        close_90 = df['close'].iloc[-90:].values.tolist()
+        open_90 = df['open'].iloc[-90:].values.tolist()
+        vol_90 = df['volume'].iloc[-90:].values.tolist()
+        low_rel_idx = int(np.argmin(close_90))
+        sub_ohlcv = {'open': open_90, 'close': close_90, 'volume': vol_90}
+        bowl_vol_metrics = analyze_bowl_volume(sub_ohlcv, low_rel_idx)
+        bowl_volume_score = compute_bowl_volume_score(bowl_vol_metrics)
+
     tail_slice = slice(-recent_days, None)
 
     return {
@@ -155,6 +177,12 @@ def process_single_stock(
         'bowl_low_90d': bowl_low_90d,
         'bowl_days_since_low': bowl_days_since_low,
         'bowl_vol_recovery': bowl_vol_recovery,
+        'bowl_vol_dryup_ratio': bowl_vol_metrics['bowl_vol_dryup_ratio'],
+        'bowl_vol_explosion_ratio': bowl_vol_metrics['bowl_vol_explosion_ratio'],
+        'bowl_value_expansion_ratio': bowl_vol_metrics['bowl_value_expansion_ratio'],
+        'bowl_accumulation_bars': bowl_vol_metrics['bowl_accumulation_bars'],
+        'bowl_volume_slope': bowl_vol_metrics['bowl_volume_slope'],
+        'bowl_volume_score': bowl_volume_score,
         'vol_avg20':   None if pd.isna(vol_avg20.iloc[-1]) else int(vol_avg20.iloc[-1])
     }
 
