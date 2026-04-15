@@ -17,3 +17,8 @@ html.dark, html.dark body { @apply bg-bg-primary-dark text-text-primary-dark; }
 button, input, select, textarea {
   font-family: inherit;
 }
+
+/* 공통 hover transition */
+button, a {
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
