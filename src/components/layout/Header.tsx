@@ -2,6 +2,7 @@ import ModeToggle from './ModeToggle'
 import ThemeToggle from './ThemeToggle'
 import UpdatedAtBadge from './UpdatedAtBadge'
 import LogoutButton from './LogoutButton'
+import HeaderNav from './HeaderNav'
 import { strings } from '@/lib/strings/ko'
 
 export default function Header() {
@@ -13,6 +14,7 @@ export default function Header() {
           <UpdatedAtBadge />
         </div>
         <div className="flex items-center gap-2">
+          <HeaderNav />
           <ModeToggle />
           <ThemeToggle />
           <LogoutButton />
