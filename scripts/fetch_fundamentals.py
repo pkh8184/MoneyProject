@@ -45,13 +45,38 @@ def main():
         sys.exit(1)
     stocks = json.loads(stocks_path.read_text(encoding='utf-8'))
 
-    print('[INFO] Fetching fundamentals...')
-    df_fund = stock.get_market_fundamental(ymd)
-    df_cap = stock.get_market_cap(ymd)
+    print('[INFO] Fetching fundamentals (with fallback to prior trading days)...')
+    # pykrx fundamental/cap 데이터는 장중이나 갱신 지연 시 빈 응답 → 최대 7거래일 이전까지 폴백
+    df_fund = None
+    df_cap = None
+    fund_date = None
+    base_dt = datetime.strptime(today, '%Y-%m-%d')
+    for days_back in range(0, 10):
+        target_dt = base_dt - timedelta(days=days_back)
+        if target_dt.weekday() >= 5:
+            continue
+        target_ymd = target_dt.strftime('%Y%m%d')
+        try:
+            tmp_fund = stock.get_market_fundamental(target_ymd)
+            tmp_cap = stock.get_market_cap(target_ymd)
+            if not tmp_fund.empty and 'PBR' in tmp_fund.columns:
+                df_fund = tmp_fund
+                df_cap = tmp_cap
+                fund_date = target_dt.strftime('%Y-%m-%d')
+                print(f'[INFO] Using fundamentals from {fund_date}')
+                break
+        except Exception as e:
+            print(f'[WARN] Fallback {target_ymd} failed: {e}', file=sys.stderr)
+            continue
+
+    if df_fund is None or df_cap is None:
+        print('[ERROR] Could not fetch fundamentals for any recent date', file=sys.stderr)
+        sys.exit(1)
 
     print('[INFO] Fetching net purchases (last 10 trading days)...')
-    start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=20)
+    start_dt = base_dt - timedelta(days=20)
     start_ymd = start_dt.strftime('%Y%m%d')
+    ymd = fund_date.replace('-', '')  # 수급 조회 종료일도 확정된 fund_date 기준
 
     result = {}
     for s in stocks['stocks']:
