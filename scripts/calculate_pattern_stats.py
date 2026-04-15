@@ -109,7 +109,7 @@ def main():
     result = {
         'meta': {
             'updated_at': datetime.now(kst).isoformat(),
-            'lookback_days': 1100
+            'lookback_days': 1830
         },
         'by_stock_preset': {}
     }
