@@ -10,6 +10,7 @@ import IndicatorTable from '@/components/stock/IndicatorTable'
 import FundamentalTable from '@/components/stock/FundamentalTable'
 import MatchedPresets from '@/components/stock/MatchedPresets'
 import BeginnerGuide from '@/components/stock/BeginnerGuide'
+import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
@@ -81,18 +82,21 @@ export default function StockDetail({ code, basePath }: Props) {
       {mode === 'beginner' ? (
         <BeginnerGuide stock={stock} fundamental={fundamental} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section>
-            <h3 className="font-bold mb-2">{strings.stock.indicators}</h3>
-            <IndicatorTable stock={stock} />
-          </section>
-          <section>
-            <h3 className="font-bold mb-2">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
-            <FundamentalTable fundamental={fundamental} />
-            <h3 className="font-bold mt-6 mb-2">{strings.stock.matchedPresets}</h3>
-            <MatchedPresets stock={stock} fundamental={fundamental} />
-          </section>
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section>
+              <h3 className="font-bold mb-2">{strings.stock.indicators}</h3>
+              <IndicatorTable stock={stock} />
+            </section>
+            <section>
+              <h3 className="font-bold mb-2">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
+              <FundamentalTable fundamental={fundamental} />
+              <h3 className="font-bold mt-6 mb-2">{strings.stock.matchedPresets}</h3>
+              <MatchedPresets stock={stock} fundamental={fundamental} />
+            </section>
+          </div>
+          <BowlVolumePanel stock={stock} fundamental={fundamental} />
+        </>
       )}
     </div>
   )

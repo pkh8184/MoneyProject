@@ -25,23 +25,28 @@ export const bowlPattern: Preset = {
   stopLoss: '저점(bowl_low_90d) 재이탈 시',
   traps: '횡보 기간이 너무 짧거나 저점이 아직 확정되지 않았으면 V자 일수 있음. 확률 참고.',
   formula: {
-    summary: '장기선(MA224) 부근 저점 형성 후 반등 시작 구간을 탐지',
+    summary: '장기선(MA224) 부근 저점 + 거래량 6단계 품질 점수 ≥ 60',
     baseConditions: [
-      '상장 후 224거래일 이상 경과 (MA224 계산 가능)',
-      '최근 90일 내 저점이 MA224 × 0.90 ~ 1.08 구간 안에 있음 (장기선 부근 저점)',
-      '저점 발생 시점이 10~60일 전 (바닥 다지기 기간)',
-      '현재 종가 ≥ 저점 × 1.03 (최소 3% 회복)',
-      '현재 종가 > MA20 (단기 상승 전환)'
+      '상장 후 224거래일 이상 경과',
+      '최근 90일 저점이 MA224 × 0.90 ~ 1.08 구간',
+      '저점 발생 10~60일 전',
+      '현재 종가 ≥ 저점 × 1.03 (3% 이상 회복)',
+      '현재 종가 > MA20',
+      '거래량 품질 점수 ≥ 60점 (6단계 가중 합산)'
     ],
     bonusConditions: [
-      '거래량 회복비 = 최근 5일 평균 거래량 ÷ 저점 근처 20일 평균 ≥ 1.3 (거래량 증가)',
-      '외국인 순매수 최근 3일 모두 양수 (외국 수급 가산)'
+      '① Dry-up 비율 < 0.6 (바닥 거래량 말라듦): 최대 30점',
+      '② Explosion 비율 ≥ 2.0 (반등 거래량 폭발): 최대 25점',
+      '③ Value 팽창 ≥ 2.0 (가격·대금 동반): 최대 15점',
+      '④ 매집 봉 ≥ 3개 (저점 중 양봉+2배 거래량): 최대 15점',
+      '⑤ 거래량 기울기 > 0.015 (점진적 증가): 최대 10점',
+      '⑥ 외국인 순매수 비율 ≥ 60%: 최대 5점'
     ],
-    reference: '일반 교과서는 200일선을 사용. 224일선(=32주)은 일부 한국 증권 자료에서 중장기 추세선으로 사용됨. Beta 단계로 공식 확정 아님.'
+    reference: 'Beta 단계. 전통 교과서 외의 한국 시장 특수 공식. 거래량 품질은 6단계 가중 합산(0~100).'
   },
 
   filter: ({ stock, fundamental }) => {
-    // 필수 1: MA224 + 90일 데이터 충분
+    // 필수: MA224 + 저점 메타
     if (!stock.has_224) return false
     if (stock.bowl_low_90d == null) return false
     if (stock.bowl_days_since_low == null) return false
@@ -49,39 +54,46 @@ export const bowlPattern: Preset = {
     const ma224Latest = latest(stock.ma224 ?? [])
     if (ma224Latest == null) return false
 
-    // 필수 2: 저점이 장기선 부근
     const low = stock.bowl_low_90d
     if (low < ma224Latest * 0.90) return false
     if (low > ma224Latest * 1.08) return false
 
-    // 필수 3: 저점 시점 적절
     const daysAgo = stock.bowl_days_since_low
     if (daysAgo < 10 || daysAgo > 60) return false
 
-    // 필수 4: 회복 시작
     const close = latest(stock.close)
     const ma20 = latest(stock.ma20)
     if (!allValid(close, ma20)) return false
     if (close! < low * 1.03) return false
     if (close! <= ma20!) return false
 
-    // 필수 조건 통과. 보너스는 점수에만 반영.
+    // 거래량 품질 점수 ≥ 60 (외국인 보너스 포함 최종 점수)
+    const baseScore = stock.bowl_volume_score ?? 0
+    let foreignBonus = 0
+    if (fundamental?.foreign_net && fundamental.foreign_net.length >= 10) {
+      const positive = fundamental.foreign_net.filter((v) => v > 0).length
+      const ratio = positive / fundamental.foreign_net.length
+      if (ratio >= 0.6) foreignBonus = 5
+      else if (ratio >= 0.4) foreignBonus = 3
+    }
+    const totalScore = baseScore + foreignBonus
+    if (totalScore < 60) return false
+
     return true
   },
 
   sortScore: ({ stock, fundamental }) => {
-    // 회복률(%) + 거래량 회복 보너스 + 외국인 수급 보너스
     const close = latest(stock.close) ?? 0
     const low = stock.bowl_low_90d ?? close
     const recoveryPct = low > 0 ? ((close - low) / low) * 100 : 0
-
-    let bonus = 0
-    if ((stock.bowl_vol_recovery ?? 0) >= 1.3) bonus += 5
-    if (fundamental?.foreign_net) {
-      const last3 = fundamental.foreign_net.slice(-3)
-      if (last3.length === 3 && last3.every((x) => x > 0)) bonus += 5
+    const volScore = stock.bowl_volume_score ?? 0
+    let foreignBonus = 0
+    if (fundamental?.foreign_net && fundamental.foreign_net.length >= 10) {
+      const positive = fundamental.foreign_net.filter((v) => v > 0).length
+      const ratio = positive / fundamental.foreign_net.length
+      if (ratio >= 0.6) foreignBonus = 5
+      else if (ratio >= 0.4) foreignBonus = 3
     }
-
-    return recoveryPct + bonus
+    return volScore + foreignBonus + recoveryPct * 0.1
   }
 }
