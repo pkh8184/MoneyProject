@@ -1,4 +1,5 @@
-import type { UpdatedAtJson } from '@/lib/types/indicators'
+import { get, set } from 'idb-keyval'
+import type { UpdatedAtJson, IndicatorsJson, FundamentalsJson } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
 
@@ -28,6 +29,58 @@ export async function loadUpdatedAt(): Promise<UpdatedAtJson | null> {
     const res = await fetch('/data/updated_at.json', { cache: 'no-store' })
     if (!res.ok) return null
     return (await res.json()) as UpdatedAtJson
+  } catch {
+    return null
+  }
+}
+
+const IDB_INDICATORS_KEY = 'indicators-cache-v1'
+const IDB_FUNDAMENTALS_KEY = 'fundamentals-cache-v1'
+
+interface CachedData<T> {
+  trade_date: string
+  data: T
+}
+
+async function getCached<T>(key: string, tradeDate: string): Promise<T | null> {
+  try {
+    const cached = await get<CachedData<T>>(key)
+    if (cached && cached.trade_date === tradeDate) return cached.data
+  } catch { /* IndexedDB unavailable */ }
+  return null
+}
+
+async function setCached<T>(key: string, tradeDate: string, data: T): Promise<void> {
+  try {
+    await set(key, { trade_date: tradeDate, data })
+  } catch { /* ignore */ }
+}
+
+export async function loadIndicators(tradeDate: string): Promise<IndicatorsJson | null> {
+  const cached = await getCached<IndicatorsJson>(IDB_INDICATORS_KEY, tradeDate)
+  if (cached) return cached
+
+  try {
+    const res = await fetch('/data/indicators.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as IndicatorsJson
+    await setCached(IDB_INDICATORS_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+export async function loadFundamentals(tradeDate: string): Promise<FundamentalsJson | null> {
+  const cached = await getCached<FundamentalsJson>(IDB_FUNDAMENTALS_KEY, tradeDate)
+  if (cached) return cached
+
+  try {
+    const res = await fetch('/data/fundamentals.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as FundamentalsJson
+    await setCached(IDB_FUNDAMENTALS_KEY, tradeDate, data)
+    return data
   } catch {
     return null
   }
