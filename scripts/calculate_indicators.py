@@ -96,6 +96,7 @@ def process_single_stock(
     ma20  = compute_ma(df, 20)
     ma60  = compute_ma(df, 60)
     ma120 = compute_ma(df, 120)
+    ma224 = compute_ma(df, 224)
     rsi14 = compute_rsi(df, 14)
     macd_line, macd_signal, macd_hist = compute_macd(df)
     bb_upper, bb_middle, bb_lower = compute_bollinger(df)
@@ -103,6 +104,27 @@ def process_single_stock(
     high52w = compute_high52w(df)
 
     has_52w = len(df) >= 250
+    has_224 = len(df) >= 224
+
+    # Bowl pattern metadata (90-day low + volume recovery)
+    bowl_low_90d = None
+    bowl_days_since_low = None
+    bowl_vol_recovery = None
+    if len(df) >= 90:
+        close_arr = df['close'].iloc[-90:]
+        vol_arr = df['volume'].iloc[-90:]
+        low_idx_rel = int(close_arr.values.argmin())  # 0..89
+        low_val = int(close_arr.iloc[low_idx_rel])
+        days_ago = len(close_arr) - 1 - low_idx_rel  # 0=오늘, 큰값=오래됨
+        bowl_low_90d = low_val
+        bowl_days_since_low = days_ago
+        # 저점 근처 20일 평균 거래량 vs 최근 5일 평균 거래량
+        low_center = max(0, low_idx_rel - 10)
+        low_end = min(len(vol_arr), low_idx_rel + 10)
+        vol_near_low = vol_arr.iloc[low_center:low_end].mean()
+        vol_recent5 = df['volume'].iloc[-5:].mean()
+        if vol_near_low and vol_near_low > 0:
+            bowl_vol_recovery = round(float(vol_recent5 / vol_near_low), 2)
 
     tail_slice = slice(-recent_days, None)
 
@@ -119,6 +141,7 @@ def process_single_stock(
         'ma20':        _to_rounded_list(ma20.iloc[tail_slice]),
         'ma60':        _to_rounded_list(ma60.iloc[tail_slice]),
         'ma120':       _to_rounded_list(ma120.iloc[tail_slice]),
+        'ma224':       _to_rounded_list(ma224.iloc[tail_slice]),
         'rsi14':       _to_rounded_list(rsi14.iloc[tail_slice]),
         'macd_line':   _to_rounded_list(macd_line.iloc[tail_slice]),
         'macd_signal': _to_rounded_list(macd_signal.iloc[tail_slice]),
@@ -128,6 +151,10 @@ def process_single_stock(
         'bb_lower':    _to_rounded_list(bb_lower.iloc[tail_slice]),
         'high52w':     None if pd.isna(high52w.iloc[-1]) else int(high52w.iloc[-1]),
         'has_52w':     has_52w,
+        'has_224':     has_224,
+        'bowl_low_90d': bowl_low_90d,
+        'bowl_days_since_low': bowl_days_since_low,
+        'bowl_vol_recovery': bowl_vol_recovery,
         'vol_avg20':   None if pd.isna(vol_avg20.iloc[-1]) else int(vol_avg20.iloc[-1])
     }
 

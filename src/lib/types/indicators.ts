@@ -24,6 +24,7 @@ export interface StockIndicators {
   ma20: (number | null)[]
   ma60: (number | null)[]
   ma120: (number | null)[]
+  ma224?: (number | null)[]
   rsi14: (number | null)[]
   macd_line: (number | null)[]
   macd_signal: (number | null)[]
@@ -33,6 +34,10 @@ export interface StockIndicators {
   bb_lower: (number | null)[]
   high52w: number | null
   has_52w: boolean
+  has_224?: boolean
+  bowl_low_90d?: number | null
+  bowl_days_since_low?: number | null
+  bowl_vol_recovery?: number | null
   vol_avg20: number | null
 }
 

@@ -1,9 +1,13 @@
 import type { Preset } from '@/lib/presets/types'
+import PresetInfoButton from './PresetInfoButton'
 
 export default function PresetDescription({ preset }: { preset: Preset }) {
   return (
     <div className="text-xs space-y-1 mb-4">
-      <p>{preset.description.expert}</p>
+      <div className="flex items-center gap-2">
+        <p>{preset.description.expert}</p>
+        <PresetInfoButton preset={preset} />
+      </div>
       <p><strong>매수 타이밍:</strong> {preset.buyTiming}</p>
       <p><strong>보유 기간:</strong> {preset.holdingPeriod}</p>
       <p><strong>손절 기준:</strong> {preset.stopLoss}</p>
