@@ -80,4 +80,5 @@ jobs:
 
       - name: Summary
         if: steps.trading.outputs.skip == 'true'
-        run: echo "⏭ Skipped: today is a holiday"
+        run: |
+          echo "Skipped - today is a holiday"
