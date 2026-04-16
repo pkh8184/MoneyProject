@@ -61,6 +61,13 @@ export const strings = {
     filteredCount: (matched: number, total: number) => `${matched}개 / 전체 ${total}개`,
     empty: '수집된 종목 데이터가 없습니다'
   },
+  firstVisit: {
+    skipButton: '건너뛰기',
+    nextButton: '다음',
+    startButton: '시작',
+    dontShowAgain: '다시 보지 않기',
+    closeAria: '안내 닫기'
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',

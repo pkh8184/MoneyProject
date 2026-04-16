@@ -1,7 +1,7 @@
 import { get, set } from 'idb-keyval'
 import type {
   UpdatedAtJson, IndicatorsJson, FundamentalsJson,
-  SectorsJson, PatternStatsJson
+  SectorsJson, PatternStatsJson, StocksJson
 } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
@@ -83,6 +83,22 @@ export async function loadFundamentals(tradeDate: string): Promise<FundamentalsJ
     if (!res.ok) return null
     const data = (await res.json()) as FundamentalsJson
     await setCached(IDB_FUNDAMENTALS_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_STOCKS_KEY = 'stocks-cache-v1'
+
+export async function loadStocks(tradeDate: string): Promise<StocksJson | null> {
+  const cached = await getCached<StocksJson>(IDB_STOCKS_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/stocks.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as StocksJson
+    await setCached(IDB_STOCKS_KEY, tradeDate, data)
     return data
   } catch {
     return null
