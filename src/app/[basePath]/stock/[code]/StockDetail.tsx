@@ -9,6 +9,7 @@ import IndicatorTable from '@/components/stock/IndicatorTable'
 import FundamentalTable from '@/components/stock/FundamentalTable'
 import MatchedPresets from '@/components/stock/MatchedPresets'
 import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
+import WatchlistButton from '@/components/stock/WatchlistButton'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
@@ -58,7 +59,10 @@ export default function StockDetail({ code, basePath }: Props) {
       </Link>
 
       <header className="mt-6 mb-8">
-        <h1 className="text-3xl font-bold">{stock.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold">{stock.name}</h1>
+          <WatchlistButton code={code} />
+        </div>
         <p className="text-base text-text-secondary-light dark:text-text-secondary-dark mt-1">
           {code} · {stock.market}
         </p>

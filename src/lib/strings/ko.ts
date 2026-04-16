@@ -42,6 +42,9 @@ export const strings = {
   legal: {
     disclaimer: '본 사이트는 투자 참고 정보만 제공하며, 특정 종목의 매수·매도를 추천하지 않습니다. 투자 판단과 그에 따른 손익은 전적으로 투자자 본인의 책임입니다. 데이터 오류·지연에 대해 책임지지 않습니다.'
   },
+  footer: {
+    glossaryLinkLabel: '📘 용어집'
+  },
   screener: {
     beginnerTitle: '오늘의 추천 종목',
     expertTitle: '전략 선택',
@@ -60,6 +63,117 @@ export const strings = {
     totalCount: (n: number) => `총 ${n}개 종목`,
     filteredCount: (matched: number, total: number) => `${matched}개 / 전체 ${total}개`,
     empty: '수집된 종목 데이터가 없습니다'
+  },
+  firstVisit: {
+    skipButton: '건너뛰기',
+    nextButton: '다음',
+    startButton: '시작',
+    dontShowAgain: '다시 보지 않기',
+    closeAria: '안내 닫기'
+  },
+  watchlist: {
+    pageTitle: '⭐ 지켜볼 종목',
+    linkLabel: '지켜볼 종목',
+    addAria: '지켜볼 종목에 추가',
+    removeAria: '지켜볼 종목에서 빼기',
+    added: '추가됨',
+    empty: '지켜볼 종목이 없습니다. 종목 상세에서 ☆를 눌러 추가하세요.',
+    sortAddedDesc: '추가순',
+    sortReturnDesc: '많이 오른순',
+    sortReturnAsc: '많이 내린순',
+    sortName: '가나다순',
+    columnPrice: '지금 가격',
+    columnChange: '어제보다',
+    columnAddedAt: '추가일',
+    deleteConfirm: (name: string) => `${name}을(를) 지켜볼 종목에서 뺄까요?`
+  },
+  portfolio: {
+    pageTitle: '💼 내가 산 주식',
+    linkLabel: '내가 산 주식',
+    addButton: '＋ 산 주식 추가',
+    empty: '아직 기록한 주식이 없습니다. ＋ 버튼으로 산 주식을 기록해 보세요.',
+    summaryProfit: (n: number) => `지금까지 +${n.toLocaleString()}원 벌었어요 🟢`,
+    summaryLoss: (n: number) => `지금까지 ${n.toLocaleString()}원 잃었어요 🔴`,
+    summaryEven: '아직 손익이 거의 없어요',
+    summarySubtitle: (cost: number, value: number) =>
+      `(전체 산 가격 ${cost.toLocaleString()}원 → 지금 가치 ${value.toLocaleString()}원)`,
+    cardBuy: (price: number, qty: number, cost: number) =>
+      `산 가격: ${price.toLocaleString()}원 × ${qty}주 = ${cost.toLocaleString()}원`,
+    cardNow: (price: number, qty: number, value: number) =>
+      `지금:    ${price.toLocaleString()}원 × ${qty}주 = ${value.toLocaleString()}원`,
+    cardProfit: (n: number, pct: number) =>
+      `👉 +${n.toLocaleString()}원 벌었어요 (${pct.toFixed(2)}% 🟢)`,
+    cardLoss: (n: number, pct: number) =>
+      `👉 ${n.toLocaleString()}원 잃었어요 (${pct.toFixed(2)}% 🔴)`,
+    cardNoPrice: '현재 가격 정보가 없어요',
+    cardFooter: '※ 수수료·세금 미반영 (참고용)',
+    deleteConfirm: (name: string) => `${name} 기록을 지울까요?`,
+    modal: {
+      addTitle: '산 주식 추가',
+      editTitle: '기록 수정',
+      stockLabel: '종목',
+      stockPlaceholder: '종목명·코드로 검색',
+      buyPriceLabel: '산 가격 (원)',
+      quantityLabel: '주식 수',
+      boughtAtLabel: '매수일',
+      memoLabel: '메모 (선택)',
+      hint: '한 번만 매수했을 때 기준이에요. 여러 번 나눠 사셨다면 평균 가격을 입력하세요.',
+      save: '저장',
+      cancel: '취소'
+    }
+  },
+  journal: {
+    pageTitle: '📓 내 거래 일기',
+    linkLabel: '내 거래 일기',
+    addButton: '＋ 기록 추가',
+    empty: '아직 거래 기록이 없습니다. ＋ 버튼으로 매수·매도를 기록하세요.',
+    monthlyTitle: (m: string) => `📅 이번 달 (${m}) 요약`,
+    monthlyTotal: (n: number) => `총 거래: ${n}번`,
+    monthlyBuySell: (b: number, s: number) => `매수: ${b}번 / 매도: ${s}번`,
+    monthlyWinLoss: (w: number, l: number) => `수익 거래: ${w}번 🟢 / 손실 거래: ${l}번 🔴`,
+    monthlyHint: '(수익/손실은 본인이 입력한 금액 기준)',
+    cardBuy: (price: number, qty: number) => `매수 ${price.toLocaleString()}원 × ${qty}주 = ${(price * qty).toLocaleString()}원`,
+    cardSell: (price: number, qty: number) => `매도 ${price.toLocaleString()}원 × ${qty}주 = ${(price * qty).toLocaleString()}원`,
+    cardProfit: (n: number) => `👉 +${n.toLocaleString()}원 벌었어요 🟢`,
+    cardLoss: (n: number) => `👉 ${n.toLocaleString()}원 잃었어요 🔴`,
+    cardMemo: (m: string) => `메모: "${m}"`,
+    deleteConfirm: '이 기록을 지울까요?',
+    filterAll: '전체',
+    filterBuy: '매수만',
+    filterSell: '매도만',
+    modal: {
+      addTitle: '거래 기록 추가',
+      editTitle: '거래 기록 수정',
+      dateLabel: '날짜',
+      stockLabel: '종목',
+      stockPlaceholder: '종목명·코드로 검색',
+      typeLabel: '거래 종류',
+      typeBuy: '매수',
+      typeSell: '매도',
+      priceLabel: '가격 (원)',
+      quantityLabel: '주식 수',
+      profitLabel: '이번 거래로 얼마 벌었어요? (잃었으면 - 표시)',
+      profitHint: '선택 입력 — 통계에 반영돼요',
+      reasonLabel: '메모 (선택)',
+      save: '저장',
+      cancel: '취소'
+    }
+  },
+  glossary: {
+    pageTitle: '📘 용어집',
+    linkLabel: '용어집',
+    searchPlaceholder: '용어 검색',
+    categoryAll: '전체',
+    empty: '검색 결과가 없습니다'
+  },
+  heatmap: {
+    pageTitle: '🗺 오늘 잘 나가는 분야',
+    linkLabel: '오늘 잘 나가는 분야',
+    topTitle: '🔥 오늘 가장 잘 나가는 5 분야',
+    bottomTitle: '❄️ 오늘 힘든 5 분야',
+    selectedSectorTitle: (s: string) => `📈 ${s} 종목 (등락순 Top 20)`,
+    pickHint: '분야를 클릭하면 그 분야 종목들이 나와요',
+    empty: '오늘은 데이터가 충분하지 않아요'
   },
   stock: {
     backToScreener: '← 검색기로',
@@ -83,6 +197,15 @@ export const strings = {
     description: '이번 달 무료 사용 한도에 근접하여 서비스가 일시 중단되었습니다.',
     resumeLabel: '재개 예정',
     contactLabel: '긴급 문의'
+  },
+  dataIO: {
+    menuLabel: '데이터',
+    exportButton: '내보내기 (JSON)',
+    importButton: '가져오기 (JSON)',
+    exportSuccess: '내려받기가 시작되었습니다',
+    importConfirm: '기존 데이터를 덮어씁니다. 계속할까요?',
+    importSuccess: '가져오기 완료',
+    importInvalid: '유효하지 않은 파일입니다'
   },
   presets: {
     golden_cross: {
