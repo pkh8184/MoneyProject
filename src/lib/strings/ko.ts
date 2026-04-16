@@ -119,6 +119,43 @@ export const strings = {
       cancel: '취소'
     }
   },
+  journal: {
+    pageTitle: '📓 내 거래 일기',
+    linkLabel: '내 거래 일기',
+    addButton: '＋ 기록 추가',
+    empty: '아직 거래 기록이 없습니다. ＋ 버튼으로 매수·매도를 기록하세요.',
+    monthlyTitle: (m: string) => `📅 이번 달 (${m}) 요약`,
+    monthlyTotal: (n: number) => `총 거래: ${n}번`,
+    monthlyBuySell: (b: number, s: number) => `매수: ${b}번 / 매도: ${s}번`,
+    monthlyWinLoss: (w: number, l: number) => `수익 거래: ${w}번 🟢 / 손실 거래: ${l}번 🔴`,
+    monthlyHint: '(수익/손실은 본인이 입력한 금액 기준)',
+    cardBuy: (price: number, qty: number) => `매수 ${price.toLocaleString()}원 × ${qty}주 = ${(price * qty).toLocaleString()}원`,
+    cardSell: (price: number, qty: number) => `매도 ${price.toLocaleString()}원 × ${qty}주 = ${(price * qty).toLocaleString()}원`,
+    cardProfit: (n: number) => `👉 +${n.toLocaleString()}원 벌었어요 🟢`,
+    cardLoss: (n: number) => `👉 ${n.toLocaleString()}원 잃었어요 🔴`,
+    cardMemo: (m: string) => `메모: "${m}"`,
+    deleteConfirm: '이 기록을 지울까요?',
+    filterAll: '전체',
+    filterBuy: '매수만',
+    filterSell: '매도만',
+    modal: {
+      addTitle: '거래 기록 추가',
+      editTitle: '거래 기록 수정',
+      dateLabel: '날짜',
+      stockLabel: '종목',
+      stockPlaceholder: '종목명·코드로 검색',
+      typeLabel: '거래 종류',
+      typeBuy: '매수',
+      typeSell: '매도',
+      priceLabel: '가격 (원)',
+      quantityLabel: '주식 수',
+      profitLabel: '이번 거래로 얼마 벌었어요? (잃었으면 - 표시)',
+      profitHint: '선택 입력 — 통계에 반영돼요',
+      reasonLabel: '메모 (선택)',
+      save: '저장',
+      cancel: '취소'
+    }
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',
