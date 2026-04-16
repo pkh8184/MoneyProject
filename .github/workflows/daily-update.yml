@@ -2,8 +2,7 @@ name: Daily Stock Data Update
 
 on:
   schedule:
-    - cron: '0 0 * * 1-5'   # UTC 00:00 = KST 09:00 (오전 갱신)
-    - cron: '0 9 * * 1-5'   # UTC 09:00 = KST 18:00 (장 마감 후 갱신)
+    - cron: '0 9 * * 1-5'   # UTC 09:00 = KST 18:00 (장 마감 후 full refresh)
   workflow_dispatch:
 
 jobs:
@@ -51,6 +50,8 @@ jobs:
           python calculate_pattern_stats.py
 
       - name: Fetch fundamentals
+        env:
+          REFRESH_TYPE: full
         run: |
           cd scripts
           python fetch_fundamentals.py

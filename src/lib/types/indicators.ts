@@ -72,6 +72,7 @@ export interface FundamentalsJson {
 export interface UpdatedAtJson {
   updated_at: string
   trade_date: string
+  type?: 'full' | 'light'
 }
 
 export interface SectorInfo {
