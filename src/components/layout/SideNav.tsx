@@ -78,32 +78,28 @@ export default function SideNav() {
             </div>
 
             <div className="space-y-1 flex-1">
-              <Link
-                href={`/${basePath}/recommendations`}
-                onClick={() => setOpen(false)}
-                className={linkClass(!!isActive('/recommendations'))}
-              >
+              <Link href={`/${basePath}/recommendations`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/recommendations'))}>
                 💡 <span>구매 추천 일괄</span>
               </Link>
-              <Link
-                href={`/${basePath}/beginner`}
-                onClick={() => setOpen(false)}
-                className={linkClass(!!isActive('/beginner'))}
-              >
+              <Link href={`/${basePath}/beginner`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/beginner'))}>
                 🌱 <span>{strings.beginner.linkLabel}</span>
               </Link>
-              <Link
-                href={`/${basePath}/screener`}
-                onClick={() => setOpen(false)}
-                className={linkClass(!!isActive('/screener'))}
-              >
+              <Link href={`/${basePath}/watchlist`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/watchlist'))}>
+                ⭐ <span>{strings.watchlist.linkLabel}</span>
+              </Link>
+              <Link href={`/${basePath}/portfolio`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/portfolio'))}>
+                💼 <span>{strings.portfolio.linkLabel}</span>
+              </Link>
+              <Link href={`/${basePath}/heatmap`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/heatmap'))}>
+                🗺 <span>{strings.heatmap.linkLabel}</span>
+              </Link>
+              <Link href={`/${basePath}/journal`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/journal'))}>
+                📓 <span>{strings.journal.linkLabel}</span>
+              </Link>
+              <Link href={`/${basePath}/screener`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/screener'))}>
                 📊 <span>전략 검색기</span>
               </Link>
-              <Link
-                href={`/${basePath}/stocks`}
-                onClick={() => setOpen(false)}
-                className={linkClass(!!isActive('/stocks'))}
-              >
+              <Link href={`/${basePath}/stocks`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/stocks'))}>
                 📋 <span>전체 종목</span>
               </Link>
             </div>

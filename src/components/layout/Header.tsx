@@ -1,6 +1,7 @@
 import ThemeToggle from './ThemeToggle'
 import UpdatedAtBadge from './UpdatedAtBadge'
 import SideNav from './SideNav'
+import DataExportImport from '@/components/common/DataExportImport'
 import { strings } from '@/lib/strings/ko'
 
 export default function Header() {
@@ -13,6 +14,9 @@ export default function Header() {
           <UpdatedAtBadge />
         </div>
         <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
+            <DataExportImport />
+          </div>
           <ThemeToggle />
         </div>
       </div>

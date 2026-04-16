@@ -42,6 +42,9 @@ export const strings = {
   legal: {
     disclaimer: '본 사이트는 투자 참고 정보만 제공하며, 특정 종목의 매수·매도를 추천하지 않습니다. 투자 판단과 그에 따른 손익은 전적으로 투자자 본인의 책임입니다. 데이터 오류·지연에 대해 책임지지 않습니다.'
   },
+  footer: {
+    glossaryLinkLabel: '📘 용어집'
+  },
   screener: {
     beginnerTitle: '오늘의 추천 종목',
     expertTitle: '전략 선택',
@@ -194,6 +197,15 @@ export const strings = {
     description: '이번 달 무료 사용 한도에 근접하여 서비스가 일시 중단되었습니다.',
     resumeLabel: '재개 예정',
     contactLabel: '긴급 문의'
+  },
+  dataIO: {
+    menuLabel: '데이터',
+    exportButton: '내보내기 (JSON)',
+    importButton: '가져오기 (JSON)',
+    exportSuccess: '내려받기가 시작되었습니다',
+    importConfirm: '기존 데이터를 덮어씁니다. 계속할까요?',
+    importSuccess: '가져오기 완료',
+    importInvalid: '유효하지 않은 파일입니다'
   },
   presets: {
     golden_cross: {
