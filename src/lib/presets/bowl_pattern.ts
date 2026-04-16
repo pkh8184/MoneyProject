@@ -13,7 +13,7 @@ export const bowlPattern: Preset = {
   name: 'Beta 🍚 밥그릇 패턴',
   mode: ['beginner', 'expert'],
   category: 'pattern',
-  shortFormula: 'MA224 부근 90일 저점 + 3% 회복',
+  shortFormula: '역배열 저점 → 골든크로스 → 정배열 전환',
   beta: true,
   params: [],
   description: {
@@ -25,11 +25,14 @@ export const bowlPattern: Preset = {
   stopLoss: '저점(bowl_low_90d) 재이탈 시',
   traps: '횡보 기간이 너무 짧거나 저점이 아직 확정되지 않았으면 V자 일수 있음. 확률 참고.',
   formula: {
-    summary: '장기선(MA224) 부근 저점 + 거래량 6단계 품질 점수 ≥ 60',
+    summary: '역배열 저점 → 골든크로스 → 정배열 전환 + 거래량 품질 검증',
     baseConditions: [
       '상장 후 224거래일 이상 경과',
-      '최근 90일 저점이 MA224 × 0.90 ~ 1.08 구간',
-      '저점 발생 10~60일 전',
+      '최근 90일 저점이 MA224 × 0.90 ~ 1.08 구간 (장기선 부근 저점)',
+      '저점 발생 10~60일 전 (바닥 다지기 기간)',
+      '저점 당시 역배열 상태 (MA5 < MA20 < MA60 < MA120)',
+      '최근 20일 내 골든크로스 발생 (MA20 ↑ MA60)',
+      '현재 정배열 형성 (MA5 > MA20 > MA60)',
       '현재 종가 ≥ 저점 × 1.03 (3% 이상 회복)',
       '현재 종가 > MA20',
       '거래량 품질 점수 ≥ 60점 (6단계 가중 합산)'
@@ -67,7 +70,15 @@ export const bowlPattern: Preset = {
     if (close! < low * 1.03) return false
     if (close! <= ma20!) return false
 
-    // 거래량 품질 점수 ≥ 60 (외국인 보너스 포함 최종 점수)
+    // ★ 역배열 → 정배열 전환 3중 검증
+    // ① 저점 당시 역배열이었는가?
+    if (stock.bowl_low_was_inverted !== true) return false
+    // ② 최근 20일 내 골든크로스 발생했는가?
+    if (stock.bowl_has_recent_golden_cross !== true) return false
+    // ③ 현재 MA5 > MA20 > MA60 정배열 형성?
+    if (stock.bowl_current_aligned !== true) return false
+
+    // 거래량 품질 점수 ≥ 60
     const baseScore = stock.bowl_volume_score ?? 0
     let foreignBonus = 0
     if (fundamental?.foreign_net && fundamental.foreign_net.length >= 10) {

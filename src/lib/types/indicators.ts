@@ -38,6 +38,9 @@ export interface StockIndicators {
   bowl_low_90d?: number | null
   bowl_days_since_low?: number | null
   bowl_vol_recovery?: number | null
+  bowl_low_was_inverted?: boolean | null
+  bowl_has_recent_golden_cross?: boolean | null
+  bowl_current_aligned?: boolean | null
   bowl_vol_dryup_ratio?: number | null
   bowl_vol_explosion_ratio?: number | null
   bowl_value_expansion_ratio?: number | null
