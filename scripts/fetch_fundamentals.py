@@ -1,8 +1,10 @@
 """
 펀더멘털 + 수급 수집.
 출력: public/data/fundamentals.json, public/data/updated_at.json
+환경변수 REFRESH_TYPE: 'full' (기본) | 'light'
 """
 import json
+import os
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -71,12 +73,15 @@ def main():
             print(f'[WARN] Fallback {target_ymd} failed: {e}', file=sys.stderr)
             continue
 
+    refresh_type = os.environ.get('REFRESH_TYPE', 'full')
+
     if df_fund is None or df_cap is None:
         print('[WARN] Could not fetch fundamentals for any recent date. Writing empty.', file=sys.stderr)
         (DATA_DIR / 'fundamentals.json').write_text(json.dumps({}), encoding='utf-8')
         updated = {
             'updated_at': datetime.now(kst).isoformat(),
-            'trade_date': stocks['trade_date']
+            'trade_date': stocks['trade_date'],
+            'type': refresh_type
         }
         (DATA_DIR / 'updated_at.json').write_text(
             json.dumps(updated, ensure_ascii=False),
@@ -127,13 +132,14 @@ def main():
 
     updated = {
         'updated_at': datetime.now(kst).isoformat(),
-        'trade_date': stocks['trade_date']
+        'trade_date': stocks['trade_date'],
+        'type': refresh_type
     }
     (DATA_DIR / 'updated_at.json').write_text(
         json.dumps(updated, ensure_ascii=False),
         encoding='utf-8'
     )
-    print(f'[INFO] updated_at.json saved')
+    print(f'[INFO] updated_at.json saved (type={refresh_type})')
 
 
 if __name__ == '__main__':
