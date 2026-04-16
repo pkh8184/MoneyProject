@@ -68,6 +68,22 @@ export const strings = {
     dontShowAgain: '다시 보지 않기',
     closeAria: '안내 닫기'
   },
+  watchlist: {
+    pageTitle: '⭐ 지켜볼 종목',
+    linkLabel: '지켜볼 종목',
+    addAria: '지켜볼 종목에 추가',
+    removeAria: '지켜볼 종목에서 빼기',
+    added: '추가됨',
+    empty: '지켜볼 종목이 없습니다. 종목 상세에서 ☆를 눌러 추가하세요.',
+    sortAddedDesc: '추가순',
+    sortReturnDesc: '많이 오른순',
+    sortReturnAsc: '많이 내린순',
+    sortName: '가나다순',
+    columnPrice: '지금 가격',
+    columnChange: '어제보다',
+    columnAddedAt: '추가일',
+    deleteConfirm: (name: string) => `${name}을(를) 지켜볼 종목에서 뺄까요?`
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',
