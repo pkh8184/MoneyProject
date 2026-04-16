@@ -130,6 +130,7 @@ def fetch_ohlcv(code: str, start_ymd: str, end_ymd: str, retries: int = 3) -> di
 
 def main():
     from trade_date import get_latest_trade_date
+    kst = pytz.timezone('Asia/Seoul')
     today = get_latest_trade_date()
     ymd = today.replace('-', '')
     print(f'[INFO] Using trade date: {today}')
