@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createChart, type IChartApi, ColorType, LineStyle,
   type ISeriesApi, CrosshairMode
@@ -17,6 +17,25 @@ interface Props {
 
 const KR_UP = '#E53935'
 const KR_DOWN = '#3DB351'
+
+// 표시 가능한 오버레이 정의
+const OVERLAYS = [
+  { key: 'ma5',   label: 'MA5 (5일)',    color: '#FFB300' },
+  { key: 'ma20',  label: 'MA20 (20일)',   color: '#0064FF' },
+  { key: 'ma60',  label: 'MA60 (60일)',   color: '#E53935' },
+  { key: 'ma120', label: 'MA120 (120일)', color: '#9C27B0' },
+  { key: 'bb',    label: '볼린저밴드',     color: '#888888' }
+] as const
+
+// 하단 패널
+const PANELS = [
+  { key: 'volume', label: '거래량',  emoji: '📊' },
+  { key: 'macd',   label: 'MACD',    emoji: '📉' },
+  { key: 'rsi',    label: 'RSI',     emoji: '🎯' }
+] as const
+
+const DEFAULT_OVERLAYS = new Set(['ma20', 'bb'])
+const DEFAULT_PANELS = new Set(['volume'])
 
 function makeChartTheme(theme: 'light' | 'dark') {
   return {
@@ -51,18 +70,39 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
   const rsiRef = useRef<HTMLDivElement>(null)
 
   const theme = useAppStore((s) => s.theme)
+  const [visibleOverlays, setVisibleOverlays] = useState<Set<string>>(DEFAULT_OVERLAYS)
+  const [visiblePanels, setVisiblePanels] = useState<Set<string>>(DEFAULT_PANELS)
 
-  // 데이터 소스: ohlcvFull(3년)이 있으면 그거, 없으면 stock(30일) 폴백
+  const toggleOverlay = (key: string) => {
+    setVisibleOverlays((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const togglePanel = (key: string) => {
+    setVisiblePanels((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const showAll = () => {
+    setVisibleOverlays(new Set(OVERLAYS.map((o) => o.key)))
+    setVisiblePanels(new Set(PANELS.map((p) => p.key)))
+  }
+  const showSimple = () => {
+    setVisibleOverlays(new Set(DEFAULT_OVERLAYS))
+    setVisiblePanels(new Set(DEFAULT_PANELS))
+  }
+
   const dataSource = useMemo(() => {
     if (ohlcvFull && ohlcvFull.dates.length > 0) {
       const closes = ohlcvFull.close
-      const ma5 = computeMA(closes, 5)
-      const ma20 = computeMA(closes, 20)
-      const ma60 = computeMA(closes, 60)
-      const ma120 = computeMA(closes, 120)
-      const rsi14 = computeRSI(closes, 14)
-      const macd = computeMACD(closes)
-      const bb = computeBB(closes, 20, 2)
       return {
         dates: ohlcvFull.dates,
         open: ohlcvFull.open,
@@ -70,16 +110,18 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
         low: ohlcvFull.low,
         close: ohlcvFull.close,
         volume: ohlcvFull.volume,
-        ma5, ma20, ma60, ma120,
-        rsi14,
-        macd_line: macd.line,
-        macd_signal: macd.signal,
-        macd_hist: macd.hist,
-        bb_upper: bb.upper,
-        bb_lower: bb.lower
+        ma5: computeMA(closes, 5),
+        ma20: computeMA(closes, 20),
+        ma60: computeMA(closes, 60),
+        ma120: computeMA(closes, 120),
+        rsi14: computeRSI(closes, 14),
+        macd_line: computeMACD(closes).line,
+        macd_signal: computeMACD(closes).signal,
+        macd_hist: computeMACD(closes).hist,
+        bb_upper: computeBB(closes, 20, 2).upper,
+        bb_lower: computeBB(closes, 20, 2).lower
       }
     }
-    // Fallback: 30일 indicators.json
     return {
       dates: stock.dates,
       open: stock.open ?? stock.close,
@@ -104,11 +146,10 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
     if (!mainRef.current) return
     const t = makeChartTheme(theme)
     const charts: IChartApi[] = []
-
     const containerWidth = mainRef.current.clientWidth
     const src = dataSource
 
-    // ============ MAIN: candles + MA + BB ============
+    // ============ MAIN ============
     const mainChart = createChart(mainRef.current, {
       ...commonChartOptions(t, 320),
       width: containerWidth,
@@ -121,23 +162,24 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
       borderUpColor: KR_UP, borderDownColor: KR_DOWN,
       wickUpColor: KR_UP, wickDownColor: KR_DOWN
     })
-    const candleData = src.dates.map((d, i) => ({
-      time: d,
-      open: src.open[i] ?? src.close[i],
-      high: src.high[i] ?? src.close[i],
-      low: src.low[i] ?? src.close[i],
-      close: src.close[i]
-    }))
-    candle.setData(candleData as any)
+    candle.setData(
+      src.dates.map((d, i) => ({
+        time: d,
+        open: src.open[i] ?? src.close[i],
+        high: src.high[i] ?? src.close[i],
+        low: src.low[i] ?? src.close[i],
+        close: src.close[i]
+      })) as any
+    )
 
-    const addLine = (values: (number | null)[], color: string, width = 1) => {
+    const addLine = (values: (number | null)[], color: string, width = 1, dashed = false) => {
       const series = mainChart.addLineSeries({
         color,
         lineWidth: width as 1,
-        lineStyle: LineStyle.Solid,
+        lineStyle: dashed ? LineStyle.Dashed : LineStyle.Solid,
         crosshairMarkerVisible: false,
         priceLineVisible: false,
-        lastValueVisible: false
+        lastValueVisible: true
       })
       series.setData(
         src.dates
@@ -147,108 +189,83 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
       return series
     }
 
-    addLine(src.ma5, '#FFB300', 1)
-    addLine(src.ma20, '#0064FF', 1)
-    addLine(src.ma60, '#E53935', 1)
-    addLine(src.ma120, '#9C27B0', 1)
-    const bbColor = theme === 'dark' ? 'rgba(150,150,200,0.6)' : 'rgba(100,100,150,0.6)'
-    addLine(src.bb_upper, bbColor, 1)
-    addLine(src.bb_lower, bbColor, 1)
+    if (visibleOverlays.has('ma5')) addLine(src.ma5, '#FFB300', 1)
+    if (visibleOverlays.has('ma20')) addLine(src.ma20, '#0064FF', 2)
+    if (visibleOverlays.has('ma60')) addLine(src.ma60, '#E53935', 1)
+    if (visibleOverlays.has('ma120')) addLine(src.ma120, '#9C27B0', 1)
+    if (visibleOverlays.has('bb')) {
+      const bbColor = theme === 'dark' ? 'rgba(150,150,200,0.5)' : 'rgba(100,100,150,0.4)'
+      addLine(src.bb_upper, bbColor, 1, true)
+      addLine(src.bb_lower, bbColor, 1, true)
+    }
 
     // ============ VOLUME ============
-    if (volRef.current) {
+    if (visiblePanels.has('volume') && volRef.current) {
       const volChart = createChart(volRef.current, {
-        ...commonChartOptions(t, 120),
+        ...commonChartOptions(t, 100),
         width: containerWidth,
-        timeScale: { ...commonChartOptions(t, 0).timeScale, timeVisible: false, visible: false }
+        timeScale: { ...commonChartOptions(t, 0).timeScale, timeVisible: false }
       })
       charts.push(volChart)
-
       const volSeries = volChart.addHistogramSeries({
         priceFormat: { type: 'volume' },
         priceScaleId: ''
       }) as ISeriesApi<'Histogram'>
-      volSeries.priceScale().applyOptions({
-        scaleMargins: { top: 0.1, bottom: 0 }
-      })
-      const volData = src.dates.map((d, i) => {
-        const isUp = i === 0 ? true : src.close[i] >= src.close[i - 1]
-        return {
+      volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } })
+      volSeries.setData(
+        src.dates.map((d, i) => ({
           time: d,
           value: src.volume[i],
-          color: isUp ? KR_UP : KR_DOWN
-        }
-      })
-      volSeries.setData(volData as any)
+          color: i === 0 || src.close[i] >= src.close[i - 1] ? KR_UP : KR_DOWN
+        })) as any
+      )
     }
 
-    // ============ MACD + RSI ============
-    if (macdRef.current && rsiRef.current) {
+    // ============ MACD ============
+    if (visiblePanels.has('macd') && macdRef.current) {
       const macdChart = createChart(macdRef.current, {
-        ...commonChartOptions(t, 120),
+        ...commonChartOptions(t, 100),
         width: containerWidth,
         timeScale: { ...commonChartOptions(t, 0).timeScale, timeVisible: false }
       })
       charts.push(macdChart)
-
-      const histSeries = macdChart.addHistogramSeries({
+      macdChart.addHistogramSeries({
         priceFormat: { type: 'price', precision: 2, minMove: 0.01 }
-      })
-      const histData = src.dates.map((d, i) => {
-        const v = src.macd_hist[i]
-        if (v == null) return null
-        return { time: d, value: v, color: v >= 0 ? KR_UP : KR_DOWN }
-      }).filter((x) => x != null) as any[]
-      histSeries.setData(histData)
-
-      const macdLine = macdChart.addLineSeries({
-        color: '#0064FF', lineWidth: 1, lastValueVisible: false, priceLineVisible: false
-      })
-      macdLine.setData(
-        src.dates.map((d, i) => ({ time: d, value: src.macd_line[i] }))
-          .filter((p) => p.value != null) as any
+      }).setData(
+        src.dates.map((d, i) => {
+          const v = src.macd_hist[i]
+          return v == null ? null : { time: d, value: v, color: v >= 0 ? KR_UP : KR_DOWN }
+        }).filter(Boolean) as any
       )
-      const sigLine = macdChart.addLineSeries({
-        color: '#E53935', lineWidth: 1, lastValueVisible: false, priceLineVisible: false
-      })
-      sigLine.setData(
-        src.dates.map((d, i) => ({ time: d, value: src.macd_signal[i] }))
-          .filter((p) => p.value != null) as any
-      )
+      const ml = macdChart.addLineSeries({ color: '#0064FF', lineWidth: 1, lastValueVisible: true, priceLineVisible: false })
+      ml.setData(src.dates.map((d, i) => ({ time: d, value: src.macd_line[i] })).filter((p) => p.value != null) as any)
+      const sl = macdChart.addLineSeries({ color: '#E53935', lineWidth: 1, lastValueVisible: true, priceLineVisible: false })
+      sl.setData(src.dates.map((d, i) => ({ time: d, value: src.macd_signal[i] })).filter((p) => p.value != null) as any)
+    }
 
+    // ============ RSI ============
+    if (visiblePanels.has('rsi') && rsiRef.current) {
       const rsiChart = createChart(rsiRef.current, {
-        ...commonChartOptions(t, 120),
+        ...commonChartOptions(t, 100),
         width: containerWidth,
         timeScale: { ...commonChartOptions(t, 0).timeScale, timeVisible: true }
       })
       charts.push(rsiChart)
-
-      const rsiSeries = rsiChart.addLineSeries({
-        color: '#9C27B0', lineWidth: 1, lastValueVisible: true, priceLineVisible: false
-      })
-      rsiSeries.setData(
-        src.dates.map((d, i) => ({ time: d, value: src.rsi14[i] }))
-          .filter((p) => p.value != null) as any
-      )
-      rsiSeries.createPriceLine({ price: 70, color: '#E53935', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: '70' })
-      rsiSeries.createPriceLine({ price: 50, color: '#888', lineWidth: 1, lineStyle: LineStyle.Dotted, axisLabelVisible: false, title: '' })
-      rsiSeries.createPriceLine({ price: 30, color: '#3DB351', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: '30' })
+      const rs = rsiChart.addLineSeries({ color: '#9C27B0', lineWidth: 1, lastValueVisible: true, priceLineVisible: false })
+      rs.setData(src.dates.map((d, i) => ({ time: d, value: src.rsi14[i] })).filter((p) => p.value != null) as any)
+      rs.createPriceLine({ price: 70, color: '#E53935', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: '과매수' })
+      rs.createPriceLine({ price: 30, color: '#3DB351', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: '과매도' })
     }
 
-    // Sync time scales
+    // Sync
     if (charts.length > 1) {
       const syncRange = (source: IChartApi) => {
         const range = source.timeScale().getVisibleLogicalRange()
         if (!range) return
-        for (const c of charts) {
-          if (c !== source) c.timeScale().setVisibleLogicalRange(range)
-        }
+        for (const c of charts) { if (c !== source) c.timeScale().setVisibleLogicalRange(range) }
       }
-      for (const c of charts) {
-        c.timeScale().subscribeVisibleLogicalRangeChange(() => syncRange(c))
-      }
+      for (const c of charts) { c.timeScale().subscribeVisibleLogicalRangeChange(() => syncRange(c)) }
     }
-
     charts[0].timeScale().fitContent()
 
     const handleResize = () => {
@@ -257,28 +274,79 @@ export default function StockChart({ stock, ohlcvFull }: Props) {
       for (const c of charts) c.applyOptions({ width: w })
     }
     window.addEventListener('resize', handleResize)
-
     return () => {
       window.removeEventListener('resize', handleResize)
       for (const c of charts) c.remove()
     }
-  }, [dataSource, theme])
+  }, [dataSource, theme, visibleOverlays, visiblePanels])
 
   const dayCount = dataSource.dates.length
-  const rangeLabel = dayCount > 400 ? '3년' : dayCount > 150 ? '1년' : `${dayCount}일`
 
   return (
-    <div className="w-full space-y-1">
+    <div className="w-full">
+      {/* 오버레이 토글 */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark mr-1">차트 위 표시:</span>
+        {OVERLAYS.map((o) => {
+          const on = visibleOverlays.has(o.key)
+          return (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => toggleOverlay(o.key)}
+              className={`inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition ${
+                on
+                  ? 'border-transparent shadow-soft font-medium'
+                  : 'border-border-light dark:border-border-dark opacity-50'
+              }`}
+              style={on ? { backgroundColor: o.color + '18', color: o.color } : {}}
+            >
+              <span
+                className="inline-block w-3 h-0.5 rounded-full"
+                style={{ backgroundColor: o.color }}
+              />
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 하단 패널 토글 */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark mr-1">하단 패널:</span>
+        {PANELS.map((p) => {
+          const on = visiblePanels.has(p.key)
+          return (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => togglePanel(p.key)}
+              className={`text-sm px-3 py-1.5 rounded-full border transition ${
+                on
+                  ? 'bg-accent-light dark:bg-accent-dark text-white border-transparent'
+                  : 'border-border-light dark:border-border-dark opacity-50'
+              }`}
+            >
+              {p.emoji} {p.label}
+            </button>
+          )
+        })}
+        <span className="ml-auto flex gap-1">
+          <button type="button" onClick={showSimple} className="text-xs text-text-secondary-light dark:text-text-secondary-dark hover:underline">간단히</button>
+          <span className="text-text-secondary-light dark:text-text-secondary-dark">·</span>
+          <button type="button" onClick={showAll} className="text-xs text-text-secondary-light dark:text-text-secondary-dark hover:underline">모두 보기</button>
+        </span>
+      </div>
+
+      {/* 차트 영역 */}
       <div ref={mainRef} className="w-full" />
-      <div ref={volRef} className="w-full" />
-      <div ref={macdRef} className="w-full" />
-      <div ref={rsiRef} className="w-full" />
-      <div className="flex flex-wrap gap-3 text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">
-        <span>범위: {rangeLabel} ({dayCount}거래일)</span>
-        <span>📈 캔들·MA5/20/60/120·BB</span>
-        <span>📊 거래량</span>
-        <span>📉 MACD</span>
-        <span>🎯 RSI</span>
+      {visiblePanels.has('volume') && <div ref={volRef} className="w-full mt-1" />}
+      {visiblePanels.has('macd') && <div ref={macdRef} className="w-full mt-1" />}
+      {visiblePanels.has('rsi') && <div ref={rsiRef} className="w-full mt-1" />}
+
+      {/* 범위 라벨 */}
+      <div className="mt-2 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+        {dayCount > 800 ? '5년' : dayCount > 400 ? '3년' : dayCount > 150 ? '1년' : `${dayCount}일`} ({dayCount}거래일)
       </div>
     </div>
   )
