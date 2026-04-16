@@ -2,7 +2,8 @@ name: Daily Stock Data Update
 
 on:
   schedule:
-    - cron: '0 9 * * 1-5'
+    - cron: '0 0 * * 1-5'   # UTC 00:00 = KST 09:00 (오전 갱신)
+    - cron: '0 9 * * 1-5'   # UTC 09:00 = KST 18:00 (장 마감 후 갱신)
   workflow_dispatch:
 
 jobs:
@@ -23,53 +24,38 @@ jobs:
       - name: Install Python deps
         run: pip install -r scripts/requirements.txt
 
-      - name: Check trading day
+      - name: Determine trade date
         id: trading
         run: |
           cd scripts
-          set +e
           python holiday_exit_guard.py
-          exit_code=$?
-          echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
-          if [ "$exit_code" -eq 78 ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-          exit 0
 
       - name: Fetch stocks
-        if: steps.trading.outputs.skip != 'true'
         run: |
           cd scripts
           python fetch_stocks.py
 
       - name: Calculate indicators
-        if: steps.trading.outputs.skip != 'true'
         run: |
           cd scripts
           python calculate_indicators.py
 
       - name: Fetch sectors
-        if: steps.trading.outputs.skip != 'true'
         run: |
           cd scripts
           python fetch_sectors.py
 
       - name: Calculate pattern stats
-        if: steps.trading.outputs.skip != 'true'
         run: |
           cd scripts
           python calculate_pattern_stats.py
 
       - name: Fetch fundamentals
-        if: steps.trading.outputs.skip != 'true'
         run: |
           cd scripts
           python fetch_fundamentals.py
 
       - name: Push to data branch (orphan commit)
-        if: steps.trading.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -81,7 +67,6 @@ jobs:
           git push -f origin data-tmp:data
 
       - name: Trigger Vercel deploy
-        if: steps.trading.outputs.skip != 'true'
         run: |
           if [ -n "${{ secrets.VERCEL_DEPLOY_HOOK }}" ]; then
             curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
@@ -91,6 +76,5 @@ jobs:
           fi
 
       - name: Summary
-        if: steps.trading.outputs.skip == 'true'
         run: |
-          echo "Skipped - today is a holiday"
+          echo "Data update completed successfully"

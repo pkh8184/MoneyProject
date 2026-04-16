@@ -129,9 +129,10 @@ def fetch_ohlcv(code: str, start_ymd: str, end_ymd: str, retries: int = 3) -> di
 
 
 def main():
-    kst = pytz.timezone('Asia/Seoul')
-    today = datetime.now(kst).strftime('%Y-%m-%d')
+    from trade_date import get_latest_trade_date
+    today = get_latest_trade_date()
     ymd = today.replace('-', '')
+    print(f'[INFO] Using trade date: {today}')
 
     # 오늘 기준 5년 전부터 수집 (달력 5년 = 1826일, 윤년 여유 1830일)
     start_dt = datetime.strptime(today, '%Y-%m-%d') - timedelta(days=1830)
