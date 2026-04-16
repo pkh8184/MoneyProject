@@ -116,20 +116,35 @@ export interface SingleStockOhlcv {
   volume: number[]
 }
 
-const IDB_OHLCV_KEY = 'ohlcv-full-cache-v1'
+const IDB_OHLCV_PREFIX = 'ohlcv-stock-v1-'
+const LEGACY_OHLCV_KEY = 'ohlcv-full-cache-v1'
+
+// 최초 호출 시 1회 옛 캐시(48MB 전체) 정리
+let legacyCleanupDone = false
+async function cleanupLegacyCache() {
+  if (legacyCleanupDone) return
+  legacyCleanupDone = true
+  try {
+    const { del } = await import('idb-keyval')
+    await del(LEGACY_OHLCV_KEY)
+  } catch { /* ignore */ }
+}
 
 export async function loadOhlcvForCode(tradeDate: string, code: string): Promise<SingleStockOhlcv | null> {
-  // 전체 ohlcv.json을 한 번만 fetch (IndexedDB 캐시)
-  const cached = await getCached<Record<string, SingleStockOhlcv>>(IDB_OHLCV_KEY, tradeDate)
-  if (cached) {
-    return cached[code] ?? null
-  }
+  cleanupLegacyCache()
+  const idbKey = `${IDB_OHLCV_PREFIX}${code}`
+
+  // 종목별 캐시
+  const cached = await getCached<SingleStockOhlcv>(idbKey, tradeDate)
+  if (cached) return cached
+
+  // per-stock 파일 로드 (~50KB)
   try {
-    const res = await fetch('/data/ohlcv.json', { cache: 'no-store' })
+    const res = await fetch(`/data/ohlcv/${code}.json`, { cache: 'no-store' })
     if (!res.ok) return null
-    const data = (await res.json()) as Record<string, SingleStockOhlcv>
-    await setCached(IDB_OHLCV_KEY, tradeDate, data)
-    return data[code] ?? null
+    const data = (await res.json()) as SingleStockOhlcv
+    await setCached(idbKey, tradeDate, data)
+    return data
   } catch {
     return null
   }
