@@ -156,6 +156,13 @@ export const strings = {
       cancel: '취소'
     }
   },
+  glossary: {
+    pageTitle: '📘 용어집',
+    linkLabel: '용어집',
+    searchPlaceholder: '용어 검색',
+    categoryAll: '전체',
+    empty: '검색 결과가 없습니다'
+  },
   heatmap: {
     pageTitle: '🗺 오늘 잘 나가는 분야',
     linkLabel: '오늘 잘 나가는 분야',
