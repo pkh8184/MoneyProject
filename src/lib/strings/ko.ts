@@ -156,6 +156,15 @@ export const strings = {
       cancel: '취소'
     }
   },
+  heatmap: {
+    pageTitle: '🗺 오늘 잘 나가는 분야',
+    linkLabel: '오늘 잘 나가는 분야',
+    topTitle: '🔥 오늘 가장 잘 나가는 5 분야',
+    bottomTitle: '❄️ 오늘 힘든 5 분야',
+    selectedSectorTitle: (s: string) => `📈 ${s} 종목 (등락순 Top 20)`,
+    pickHint: '분야를 클릭하면 그 분야 종목들이 나와요',
+    empty: '오늘은 데이터가 충분하지 않아요'
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',
