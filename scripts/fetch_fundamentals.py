@@ -35,9 +35,11 @@ def build_net_purchase_history(rows: list[dict], n: int = 10) -> tuple[list[int]
 
 
 def main():
+    from trade_date import get_latest_trade_date
     kst = pytz.timezone('Asia/Seoul')
-    today = datetime.now(kst).strftime('%Y-%m-%d')
+    today = get_latest_trade_date()
     ymd = today.replace('-', '')
+    print(f'[INFO] Using trade date: {today}')
 
     stocks_path = DATA_DIR / 'stocks.json'
     if not stocks_path.exists():
