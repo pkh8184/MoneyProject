@@ -139,9 +139,9 @@ export default function HeatmapView({ basePath }: Props) {
       {showGuide && (
         <FirstVisitGuide
           steps={[
-            { title: '🗺 오늘 잘 나가는 분야', body: '오늘 어떤 분야가 강한지/약한지 한눈에 보여요.' },
-            { title: '사용 방법', body: '분야를 클릭하면 그 분야 종목들이 나와요.' },
-            { title: '활용 팁', body: '매일 흐름이 바뀌니 자주 확인하세요. 강한 분야의 종목을 살펴보세요.' }
+            { title: '🗺 오늘 잘 나가는 분야', body: '오늘 어떤 분야가 잘 나가는지/힘든지 한눈에 보여줘요.' },
+            { title: '사용 방법', body: '분야를 눌러보면 그 분야 종목들이 나와요.' },
+            { title: '활용 팁', body: '매일 흐름이 바뀌니 자주 확인해 보세요. 잘 나가는 분야 종목을 살펴보면 좋아요.' }
           ]}
           onDismiss={(persist) => {
             setShowGuide(false)

@@ -165,9 +165,9 @@ export default function WatchlistView({ basePath }: Props) {
       {showGuide && (
         <FirstVisitGuide
           steps={[
-            { title: '⭐ 지켜볼 종목이란?', body: '관심있는 종목을 즐겨찾기처럼 모아두는 곳이에요.' },
-            { title: '추가하는 방법', body: '종목 상세 페이지에서 ☆를 누르면 여기에 추가돼요.' },
-            { title: '활용 팁', body: '매일 들어와서 종목들이 어떻게 움직이는지 확인하세요. 더 관심 없으면 🗑로 빼면 돼요.' }
+            { title: '⭐ 즐겨찾기란?', body: '관심있는 종목을 모아두는 곳이에요.' },
+            { title: '추가하는 방법', body: '종목 페이지에서 ☆를 누르면 여기에 추가돼요.' },
+            { title: '활용 팁', body: '매일 들어와서 종목들이 어떻게 움직이는지 확인해 보세요. 더 이상 관심 없으면 🗑를 눌러 빼면 돼요.' }
           ]}
           onDismiss={(persist) => {
             setShowGuide(false)
