@@ -110,16 +110,19 @@ def process_single_stock(
     has_52w = len(df) >= 250
     has_224 = len(df) >= 224
 
-    # Bowl pattern metadata (90-day low + volume recovery)
+    # Bowl pattern metadata (90-day low + volume recovery + inversion detection)
     bowl_low_90d = None
     bowl_days_since_low = None
     bowl_vol_recovery = None
+    bowl_low_was_inverted = None
+    bowl_has_recent_golden_cross = None
+    bowl_current_aligned = None
     if len(df) >= 90:
         close_arr = df['close'].iloc[-90:]
         vol_arr = df['volume'].iloc[-90:]
-        low_idx_rel = int(close_arr.values.argmin())  # 0..89
+        low_idx_rel = int(close_arr.values.argmin())  # 0..89 within last 90 days
         low_val = int(close_arr.iloc[low_idx_rel])
-        days_ago = len(close_arr) - 1 - low_idx_rel  # 0=오늘, 큰값=오래됨
+        days_ago = len(close_arr) - 1 - low_idx_rel
         bowl_low_90d = low_val
         bowl_days_since_low = days_ago
         # 저점 근처 20일 평균 거래량 vs 최근 5일 평균 거래량
@@ -129,6 +132,53 @@ def process_single_stock(
         vol_recent5 = df['volume'].iloc[-5:].mean()
         if vol_near_low and vol_near_low > 0:
             bowl_vol_recovery = round(float(vol_recent5 / vol_near_low), 2)
+
+        # ★ 역배열→정배열 전환 검증
+        # 저점 full-df 인덱스
+        low_full_idx = len(df) - 90 + low_idx_rel
+
+        # ① 저점 발생 시점 ±5일 역배열 여부 (MA5 < MA20 < MA60 < MA120 비율 ≥ 50%)
+        if len(df) >= 120:
+            window_start = max(0, low_full_idx - 5)
+            window_end = min(len(df), low_full_idx + 6)
+            inv_count = 0
+            total = 0
+            for i in range(window_start, window_end):
+                v5 = ma5.iloc[i] if i < len(ma5) else None
+                v20 = ma20.iloc[i] if i < len(ma20) else None
+                v60 = ma60.iloc[i] if i < len(ma60) else None
+                v120 = ma120.iloc[i] if i < len(ma120) else None
+                if pd.isna(v5) or pd.isna(v20) or pd.isna(v60) or pd.isna(v120):
+                    continue
+                total += 1
+                if v5 < v20 < v60 < v120:
+                    inv_count += 1
+            if total > 0:
+                bowl_low_was_inverted = (inv_count / total) >= 0.5
+
+        # ② 최근 20일 내 골든크로스 (MA20 상향 돌파 MA60)
+        if len(df) >= 60 + 20:
+            gc_found = False
+            scan_start = max(1, len(df) - 20)
+            for i in range(scan_start, len(df)):
+                a20_t = ma20.iloc[i]
+                a20_y = ma20.iloc[i - 1]
+                a60_t = ma60.iloc[i]
+                a60_y = ma60.iloc[i - 1]
+                if pd.isna(a20_t) or pd.isna(a20_y) or pd.isna(a60_t) or pd.isna(a60_y):
+                    continue
+                if a20_t > a60_t and a20_y <= a60_y:
+                    gc_found = True
+                    break
+            bowl_has_recent_golden_cross = gc_found
+
+        # ③ 현재 정배열 형성 (MA5 > MA20 > MA60)
+        if len(df) >= 60:
+            a5 = ma5.iloc[-1]
+            a20 = ma20.iloc[-1]
+            a60 = ma60.iloc[-1]
+            if not (pd.isna(a5) or pd.isna(a20) or pd.isna(a60)):
+                bowl_current_aligned = bool(a5 > a20 > a60)
 
     # Bowl volume v2 심화 분석
     bowl_vol_metrics = {
@@ -177,6 +227,9 @@ def process_single_stock(
         'bowl_low_90d': bowl_low_90d,
         'bowl_days_since_low': bowl_days_since_low,
         'bowl_vol_recovery': bowl_vol_recovery,
+        'bowl_low_was_inverted': bowl_low_was_inverted,
+        'bowl_has_recent_golden_cross': bowl_has_recent_golden_cross,
+        'bowl_current_aligned': bowl_current_aligned,
         'bowl_vol_dryup_ratio': bowl_vol_metrics['bowl_vol_dryup_ratio'],
         'bowl_vol_explosion_ratio': bowl_vol_metrics['bowl_vol_explosion_ratio'],
         'bowl_value_expansion_ratio': bowl_vol_metrics['bowl_value_expansion_ratio'],
