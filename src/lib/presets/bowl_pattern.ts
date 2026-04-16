@@ -13,7 +13,7 @@ export const bowlPattern: Preset = {
   name: 'Beta 🍚 밥그릇 패턴',
   mode: ['beginner', 'expert'],
   category: 'pattern',
-  shortFormula: 'MA224 부근 90일 저점 + 3% 회복',
+  shortFormula: '역배열 저점 → 골든크로스 → 정배열 전환',
   beta: true,
   params: [],
   description: {
