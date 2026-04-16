@@ -84,6 +84,41 @@ export const strings = {
     columnAddedAt: '추가일',
     deleteConfirm: (name: string) => `${name}을(를) 지켜볼 종목에서 뺄까요?`
   },
+  portfolio: {
+    pageTitle: '💼 내가 산 주식',
+    linkLabel: '내가 산 주식',
+    addButton: '＋ 산 주식 추가',
+    empty: '아직 기록한 주식이 없습니다. ＋ 버튼으로 산 주식을 기록해 보세요.',
+    summaryProfit: (n: number) => `지금까지 +${n.toLocaleString()}원 벌었어요 🟢`,
+    summaryLoss: (n: number) => `지금까지 ${n.toLocaleString()}원 잃었어요 🔴`,
+    summaryEven: '아직 손익이 거의 없어요',
+    summarySubtitle: (cost: number, value: number) =>
+      `(전체 산 가격 ${cost.toLocaleString()}원 → 지금 가치 ${value.toLocaleString()}원)`,
+    cardBuy: (price: number, qty: number, cost: number) =>
+      `산 가격: ${price.toLocaleString()}원 × ${qty}주 = ${cost.toLocaleString()}원`,
+    cardNow: (price: number, qty: number, value: number) =>
+      `지금:    ${price.toLocaleString()}원 × ${qty}주 = ${value.toLocaleString()}원`,
+    cardProfit: (n: number, pct: number) =>
+      `👉 +${n.toLocaleString()}원 벌었어요 (${pct.toFixed(2)}% 🟢)`,
+    cardLoss: (n: number, pct: number) =>
+      `👉 ${n.toLocaleString()}원 잃었어요 (${pct.toFixed(2)}% 🔴)`,
+    cardNoPrice: '현재 가격 정보가 없어요',
+    cardFooter: '※ 수수료·세금 미반영 (참고용)',
+    deleteConfirm: (name: string) => `${name} 기록을 지울까요?`,
+    modal: {
+      addTitle: '산 주식 추가',
+      editTitle: '기록 수정',
+      stockLabel: '종목',
+      stockPlaceholder: '종목명·코드로 검색',
+      buyPriceLabel: '산 가격 (원)',
+      quantityLabel: '주식 수',
+      boughtAtLabel: '매수일',
+      memoLabel: '메모 (선택)',
+      hint: '한 번만 매수했을 때 기준이에요. 여러 번 나눠 사셨다면 평균 가격을 입력하세요.',
+      save: '저장',
+      cancel: '취소'
+    }
+  },
   stock: {
     backToScreener: '← 검색기로',
     currentPrice: '현재가',
