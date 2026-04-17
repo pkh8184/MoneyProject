@@ -117,6 +117,8 @@ def process_single_stock(
     bowl_low_was_inverted = None
     bowl_has_recent_golden_cross = None
     bowl_current_aligned = None
+    bowl_sideways_days_ratio = None
+    bowl_ma_convergence_min = None
     if len(df) >= 90:
         close_arr = df['close'].iloc[-90:]
         vol_arr = df['volume'].iloc[-90:]
@@ -180,6 +182,37 @@ def process_single_stock(
             if not (pd.isna(a5) or pd.isna(a20) or pd.isna(a60)):
                 bowl_current_aligned = bool(a5 > a20 > a60)
 
+        # ④ 2번 구간(횡보·매집) 검증 — V자 반등 배제
+        # 저점 이후 오늘까지 close가 저점 대비 ±15% 밴드에 머무른 날 비율
+        # 높을수록 박스권 횡보 (밥그릇 매집 구간), 낮으면 V자 반등
+        days_after_low = len(close_arr) - 1 - low_idx_rel
+        if days_after_low >= 5:
+            band_low = low_val * 0.85
+            band_high = low_val * 1.15
+            after_low_closes = close_arr.iloc[low_idx_rel:]
+            in_band = ((after_low_closes >= band_low) & (after_low_closes <= band_high)).sum()
+            bowl_sideways_days_ratio = round(float(in_band / len(after_low_closes)), 2)
+
+        # ⑤ 저점 이후 MA5/MA20/MA60 최소 스프레드 비율
+        # 매집 구간에서 MA들이 수렴하면 이 값이 작아짐
+        if len(df) >= 60 and low_full_idx + 1 < len(df):
+            min_spread = None
+            for i in range(low_full_idx, len(df)):
+                v5 = ma5.iloc[i]
+                v20 = ma20.iloc[i]
+                v60 = ma60.iloc[i]
+                if pd.isna(v5) or pd.isna(v20) or pd.isna(v60):
+                    continue
+                vals = [float(v5), float(v20), float(v60)]
+                mean_val = sum(vals) / 3
+                if mean_val <= 0:
+                    continue
+                spread = (max(vals) - min(vals)) / mean_val
+                if min_spread is None or spread < min_spread:
+                    min_spread = spread
+            if min_spread is not None:
+                bowl_ma_convergence_min = round(min_spread, 4)
+
     # Bowl volume v2 심화 분석
     bowl_vol_metrics = {
         'bowl_vol_dryup_ratio': None,
@@ -230,6 +263,8 @@ def process_single_stock(
         'bowl_low_was_inverted': bowl_low_was_inverted,
         'bowl_has_recent_golden_cross': bowl_has_recent_golden_cross,
         'bowl_current_aligned': bowl_current_aligned,
+        'bowl_sideways_days_ratio': bowl_sideways_days_ratio,
+        'bowl_ma_convergence_min': bowl_ma_convergence_min,
         'bowl_vol_dryup_ratio': bowl_vol_metrics['bowl_vol_dryup_ratio'],
         'bowl_vol_explosion_ratio': bowl_vol_metrics['bowl_vol_explosion_ratio'],
         'bowl_value_expansion_ratio': bowl_vol_metrics['bowl_value_expansion_ratio'],

@@ -9,6 +9,7 @@ import IndicatorTable from '@/components/stock/IndicatorTable'
 import FundamentalTable from '@/components/stock/FundamentalTable'
 import MatchedPresets from '@/components/stock/MatchedPresets'
 import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
+import BowlPhaseIndicator from '@/components/stock/BowlPhaseIndicator'
 import WatchlistButton from '@/components/stock/WatchlistButton'
 import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
 
@@ -92,6 +93,7 @@ export default function StockDetail({ code, basePath }: Props) {
         <h3 className="text-xl font-bold mb-4">{strings.stock.matchedPresets}</h3>
         <MatchedPresets stock={stock} fundamental={fundamental} />
       </section>
+      <BowlPhaseIndicator stock={stock} />
       <BowlVolumePanel stock={stock} fundamental={fundamental} />
     </div>
   )

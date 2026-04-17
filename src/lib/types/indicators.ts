@@ -41,6 +41,8 @@ export interface StockIndicators {
   bowl_low_was_inverted?: boolean | null
   bowl_has_recent_golden_cross?: boolean | null
   bowl_current_aligned?: boolean | null
+  bowl_sideways_days_ratio?: number | null
+  bowl_ma_convergence_min?: number | null
   bowl_vol_dryup_ratio?: number | null
   bowl_vol_explosion_ratio?: number | null
   bowl_value_expansion_ratio?: number | null
