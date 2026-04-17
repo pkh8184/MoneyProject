@@ -54,6 +54,98 @@ def golden_cross_events(ohlcv: dict) -> list[int]:
     return events
 
 
+def combo_golden_events(ohlcv: dict) -> list[int]:
+    """골든크로스 + 최근 3일 내 거래량 급증 조합."""
+    gc = set(golden_cross_events(ohlcv))
+    vs = set(volume_spike_events(ohlcv, k=1.5))
+    if not gc or not vs:
+        return []
+    events = []
+    for t in gc:
+        for dt in range(-3, 4):
+            if (t + dt) in vs:
+                events.append(t)
+                break
+    return events
+
+
+def v_shape_rebound_events(ohlcv: dict) -> list[int]:
+    """최근 20일 저점에서 5% 이상 반등한 첫날."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 25:
+        return []
+    events = []
+    for t in range(20, n):
+        low20 = min(close[t-20:t])
+        if low20 <= 0:
+            continue
+        if close[t] >= low20 * 1.05 and close[t-1] < low20 * 1.05:
+            events.append(t)
+    return events
+
+
+def alignment_events(ohlcv: dict) -> list[int]:
+    """MA5 > MA20 > MA60 > MA120 정배열 첫 형성일."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 125:
+        return []
+    def mas_at(t):
+        return (
+            sum(close[t-4:t+1]) / 5,
+            sum(close[t-19:t+1]) / 20,
+            sum(close[t-59:t+1]) / 60,
+            sum(close[t-119:t+1]) / 120,
+        )
+    events = []
+    for t in range(120, n):
+        m5t, m20t, m60t, m120t = mas_at(t)
+        m5y, m20y, m60y, m120y = mas_at(t - 1)
+        aligned_t = m5t > m20t > m60t > m120t
+        aligned_y = m5y > m20y > m60y > m120y
+        if aligned_t and not aligned_y:
+            events.append(t)
+    return events
+
+
+def ma60_turn_up_events(ohlcv: dict) -> list[int]:
+    """MA60이 5일 연속 상승 전환한 첫날."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 70:
+        return []
+    events = []
+    for t in range(65, n):
+        ma60 = [sum(close[t-59-i:t+1-i]) / 60 for i in range(5)]
+        if ma60[0] > ma60[1] > ma60[2] > ma60[3] > ma60[4]:
+            # 과거 10일 중엔 이런 패턴 아니었어야 함 (첫 전환)
+            prev_ma60 = sum(close[t-64:t-4]) / 60
+            if prev_ma60 > ma60[4]:  # 이전 평균이 현재보다 높았으면 최근에 하락 중이었음
+                events.append(t)
+    return events
+
+
+def bb_lower_bounce_events(ohlcv: dict) -> list[int]:
+    """볼린저 하단 터치 후 반등 이벤트 (combo_value_rebound 근사)."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 25:
+        return []
+    import math
+    events = []
+    for t in range(20, n):
+        window = close[t-19:t+1]
+        mean = sum(window) / 20
+        var = sum((x - mean) ** 2 for x in window) / 20
+        std = math.sqrt(var)
+        bb_lower = mean - 2 * std
+        # 어제 하단 터치, 오늘 반등
+        if close[t-1] <= bb_lower and close[t] > close[t-1]:
+            events.append(t)
+    return events
+
+
 def compute_return_stat(returns: list[float]) -> dict:
     """수익률 배열 → 평균/최대/상승률."""
     if not returns:
@@ -119,16 +211,28 @@ def main():
 
     print(f'[INFO] Analyzing {len(ohlcv_all)} stocks...')
     processed = 0
+    # 프리셋 ID → event detector 함수 매핑
+    # 주의: 여기의 키는 src/lib/presets/registry.ts의 preset.id와 일치해야 함
+    detectors = {
+        'volume_spike':    lambda oh: volume_spike_events(oh, k=1.5),
+        'golden_cross':    golden_cross_events,
+        'combo_golden':    combo_golden_events,
+        'v_shape_rebound': v_shape_rebound_events,
+        'alignment':       alignment_events,
+        'ma60_turn_up':    ma60_turn_up_events,
+        'combo_value_rebound': bb_lower_bounce_events,
+        'bb_lower_bounce': bb_lower_bounce_events,
+    }
+
     for code, ohlcv in ohlcv_all.items():
         stats_for_stock = {}
-
-        vs_events = volume_spike_events(ohlcv, k=1.5)
-        if len(vs_events) >= MIN_SAMPLE:
-            stats_for_stock['volume_spike'] = aggregate_events(ohlcv, vs_events)
-
-        gc_events = golden_cross_events(ohlcv)
-        if len(gc_events) >= MIN_SAMPLE:
-            stats_for_stock['golden_cross'] = aggregate_events(ohlcv, gc_events)
+        for preset_id, detector in detectors.items():
+            try:
+                events = detector(ohlcv)
+            except Exception:
+                events = []
+            if len(events) >= MIN_SAMPLE:
+                stats_for_stock[preset_id] = aggregate_events(ohlcv, events)
 
         if stats_for_stock:
             result['by_stock_preset'][code] = stats_for_stock
