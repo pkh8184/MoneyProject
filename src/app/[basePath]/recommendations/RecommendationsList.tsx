@@ -150,21 +150,20 @@ export default function RecommendationsList({ basePath }: Props) {
       }
     }
 
-    // 매칭된 프리셋들의 과거 D+14 통계 평균 계산 (없으면 D+7 폴백)
+    // 매칭된 프리셋들의 과거 D+14 통계 평균 계산 (없으면 D+7 폴백, 둘 다 없으면 ML 예측)
     const enriched: AggRow[] = []
     for (const row of byCode.values()) {
       const presetStats = patternStats?.by_stock_preset?.[row.code]
       let sumAvg = 0
       let sumWin = 0
       let count = 0
-      let horizonLabel = 'D+14'
-      let usedFallback = false
+      let usedD7Fallback = false
       for (const pid of row.matchedIds) {
         const s = presetStats?.[pid]
         if (!s || s.sample_count < 5) continue
         const h = s.d14 ?? s.d7
         if (!h) continue
-        if (!s.d14) usedFallback = true
+        if (!s.d14) usedD7Fallback = true
         sumAvg += h.avg
         sumWin += h.win_rate
         count++
@@ -172,7 +171,13 @@ export default function RecommendationsList({ basePath }: Props) {
       if (count > 0) {
         row.expectedReturn = sumAvg / count
         row.expectedWinRate = sumWin / count
-        row.horizonLabel = usedFallback ? 'D+7' : 'D+14'
+        row.horizonLabel = usedD7Fallback ? 'D+7' : 'D+14'
+      } else if (row.mlPrediction) {
+        // 2순위: ML 예측 (확률 → 근사 수익률)
+        const prob = row.mlPrediction.probability
+        row.expectedReturn = (prob - 0.5) * 15  // 0.5 기준 ±점수
+        row.expectedWinRate = Math.round(prob * 100)
+        row.horizonLabel = 'ML D+20'
       }
       // 음수 기대수익은 "오늘의 추천"에서 제외
       if (row.expectedReturn != null && row.expectedReturn < 0) continue
