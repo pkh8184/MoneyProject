@@ -126,6 +126,125 @@ def ma60_turn_up_events(ohlcv: dict) -> list[int]:
     return events
 
 
+def rsi_rebound_events(ohlcv: dict) -> list[int]:
+    """RSI14가 30 아래로 내려갔다가 30 이상 재돌파 (과매도 반등)."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 20:
+        return []
+    # RSI14 계산
+    rsi = []
+    for t in range(n):
+        if t < 14:
+            rsi.append(None)
+            continue
+        gains = 0
+        losses = 0
+        for i in range(t - 13, t + 1):
+            if i == 0:
+                continue
+            diff = close[i] - close[i-1]
+            if diff > 0:
+                gains += diff
+            else:
+                losses -= diff
+        if losses == 0:
+            rsi.append(100)
+        else:
+            rs = gains / losses
+            rsi.append(100 - 100 / (1 + rs))
+    events = []
+    for t in range(15, n):
+        if rsi[t-1] is None or rsi[t] is None:
+            continue
+        if rsi[t-1] < 30 and rsi[t] >= 30:
+            events.append(t)
+    return events
+
+
+def macd_cross_events(ohlcv: dict) -> list[int]:
+    """MACD 라인이 시그널 상향 돌파 (근사: EMA12 - EMA26 > signal EMA9)."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 40:
+        return []
+    # EMA 계산 헬퍼
+    def ema(period: int) -> list[float]:
+        k = 2 / (period + 1)
+        out = [close[0]]
+        for i in range(1, n):
+            out.append(close[i] * k + out[i-1] * (1 - k))
+        return out
+    ema12 = ema(12)
+    ema26 = ema(26)
+    macd_line = [ema12[i] - ema26[i] for i in range(n)]
+    # signal = EMA9 of macd_line
+    k = 2 / (9 + 1)
+    signal = [macd_line[0]]
+    for i in range(1, n):
+        signal.append(macd_line[i] * k + signal[i-1] * (1 - k))
+    events = []
+    for t in range(27, n):
+        if macd_line[t-1] <= signal[t-1] and macd_line[t] > signal[t]:
+            events.append(t)
+    return events
+
+
+def prev_high_break_events(ohlcv: dict) -> list[int]:
+    """최근 60일 신고가 돌파 (전일 종가 < 60일 최고, 오늘 >= 60일 최고)."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 65:
+        return []
+    events = []
+    for t in range(60, n):
+        high60 = max(close[t-60:t])
+        if close[t-1] < high60 and close[t] >= high60:
+            events.append(t)
+    return events
+
+
+def high_52w_events(ohlcv: dict) -> list[int]:
+    """52주(250거래일) 신고가 돌파."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 251:
+        return []
+    events = []
+    for t in range(250, n):
+        high_52w = max(close[t-250:t])
+        if close[t-1] < high_52w and close[t] >= high_52w:
+            events.append(t)
+    return events
+
+
+def macd_hist_positive_events(ohlcv: dict) -> list[int]:
+    """MACD 히스토그램 음→양 전환."""
+    close = ohlcv['close']
+    n = len(close)
+    if n < 40:
+        return []
+    def ema(period: int) -> list[float]:
+        k = 2 / (period + 1)
+        out = [close[0]]
+        for i in range(1, n):
+            out.append(close[i] * k + out[i-1] * (1 - k))
+        return out
+    ema12 = ema(12)
+    ema26 = ema(26)
+    macd_line = [ema12[i] - ema26[i] for i in range(n)]
+    k = 2 / (9 + 1)
+    signal = [macd_line[0]]
+    for i in range(1, n):
+        signal.append(macd_line[i] * k + signal[i-1] * (1 - k))
+    hist = [macd_line[i] - signal[i] for i in range(n)]
+    events = []
+    for t in range(27, n):
+        if hist[t-1] <= 0 and hist[t] > 0:
+            events.append(t)
+    return events
+
+
 def bb_lower_bounce_events(ohlcv: dict) -> list[int]:
     """볼린저 하단 터치 후 반등 이벤트 (combo_value_rebound 근사)."""
     close = ohlcv['close']
