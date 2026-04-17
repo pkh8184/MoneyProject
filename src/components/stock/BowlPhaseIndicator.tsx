@@ -3,31 +3,10 @@
 import Card from '@/components/ui/Card'
 import { strings } from '@/lib/strings/ko'
 import type { StockIndicators } from '@/lib/types/indicators'
+import { detectBowlPhase } from '@/lib/bowl/detectPhase'
 
 interface Props {
   stock: StockIndicators
-}
-
-type PhaseNum = 1 | 2 | 3 | 4 | null
-
-function detectPhase(stock: StockIndicators): PhaseNum {
-  if (stock.bowl_low_90d == null || stock.bowl_days_since_low == null) return null
-  if (stock.bowl_low_was_inverted !== true) return null
-
-  // ④ 정배열 + 골든크로스 + 저점 회복 충분 → Phase 4
-  if (stock.bowl_current_aligned === true && stock.bowl_has_recent_golden_cross === true) {
-    return 4
-  }
-  // ③ 골든크로스는 발생했으나 아직 완전한 정배열 아님
-  if (stock.bowl_has_recent_golden_cross === true) {
-    return 3
-  }
-  // ② 저점 이후 매집·횡보 중 (골든크로스 아직 X)
-  if (stock.bowl_days_since_low >= 10) {
-    return 2
-  }
-  // ① 저점 직후 (급락 직후)
-  return 1
 }
 
 const PHASES: { num: 1 | 2 | 3 | 4; key: 'phase1' | 'phase2' | 'phase3' | 'phase4' }[] = [
@@ -40,7 +19,7 @@ const PHASES: { num: 1 | 2 | 3 | 4; key: 'phase1' | 'phase2' | 'phase3' | 'phase
 export default function BowlPhaseIndicator({ stock }: Props) {
   if (!stock.has_224) return null
 
-  const phase = detectPhase(stock)
+  const phase = detectBowlPhase(stock)
   const t = strings.bowlPhase
 
   return (
