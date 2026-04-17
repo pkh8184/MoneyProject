@@ -75,7 +75,12 @@ def compute_tech_features(oh: dict, idx: int) -> dict | None:
     ret_5d = (close - closes[idx - 5]) / closes[idx - 5] * 100 if closes[idx - 5] > 0 else 0
 
     # 20d volatility (std of daily returns)
-    daily_rets = np.diff(closes[idx - 19:idx + 1]) / closes[idx - 20:idx] if idx >= 20 else np.array([0])
+    if idx >= 20:
+        prev = np.array(closes[idx - 20:idx])  # 어제 종가 20개
+        diffs = np.diff(closes[idx - 20:idx + 1])  # 오늘-어제 20개
+        daily_rets = np.divide(diffs, prev, out=np.zeros_like(diffs, dtype=float), where=prev > 0)
+    else:
+        daily_rets = np.array([0.0])
     volatility = np.std(daily_rets) * 100
 
     return {
