@@ -76,4 +76,19 @@ describe('computeMacroBonus', () => {
     const result = computeMacroBonus('한화에어로스페이스', ['방산'], [f])
     expect(result.total).toBe(10)
   })
+
+  it('applies decay when activatedAt is 75 days ago', () => {
+    const f = mkFactor('war', ['방산'], [], 10)
+    const now = Date.now()
+    const DAY_MS = 86_400_000
+    const activatedAt = { war: now - 75 * DAY_MS }
+    const result = computeMacroBonus('한화에어로스페이스', ['방산'], [f], activatedAt)
+    expect(result.total).toBe(5)
+  })
+
+  it('no decay when activatedAt missing (manual toggle)', () => {
+    const f = mkFactor('war', ['방산'], [], 10)
+    const result = computeMacroBonus('한화에어로스페이스', ['방산'], [f], {})
+    expect(result.total).toBe(10)
+  })
 })

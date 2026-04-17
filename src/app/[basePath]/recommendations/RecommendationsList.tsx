@@ -6,14 +6,15 @@ import { allPresets } from '@/lib/presets/registry'
 import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
 import { runPreset, enrichWithMacro } from '@/lib/filter'
 import {
-  loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt
+  loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation
 } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import type {
-  IndicatorsJson, FundamentalsJson, SectorsJson
+  IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson
 } from '@/lib/types/indicators'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
 import { computeMacroBonus } from '@/lib/macro/scoring'
+import { computeSectorRotationBonus, type SectorRotationBonus } from '@/lib/macro/sectorRotation'
 import type { MacroBonus } from '@/lib/macro/types'
 import MacroBadge from '@/components/macro/MacroBadge'
 import Card from '@/components/ui/Card'
@@ -31,6 +32,7 @@ interface AggRow {
   matchedIds: string[]
   matchedNames: string[]
   macroBonus?: MacroBonus
+  sectorRotationBonus?: SectorRotationBonus
 }
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
@@ -62,6 +64,7 @@ export default function RecommendationsList({ basePath }: Props) {
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
   const [sectors, setSectors] = useState<SectorsJson | null>(null)
+  const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
   const [loading, setLoading] = useState(true)
   const [minMatches, setMinMatches] = useState(2)
   const [showFilters, setShowFilters] = useState(false)
@@ -84,14 +87,16 @@ export default function RecommendationsList({ basePath }: Props) {
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund, sec] = await Promise.all([
+      const [ind, fund, sec, rot] = await Promise.all([
         loadIndicators(u.trade_date),
         loadFundamentals(u.trade_date),
-        loadSectors(u.trade_date)
+        loadSectors(u.trade_date),
+        loadSectorRotation(u.trade_date)
       ])
       setIndicators(ind)
       setFundamentals(fund ?? {})
       setSectors(sec)
+      setRotation(rot)
       setLoading(false)
     })
   }, [])
@@ -107,13 +112,14 @@ export default function RecommendationsList({ basePath }: Props) {
 
     for (const preset of enabledPresets) {
       const raw = runPreset(preset, indicators, fundamentals, {})
-      const results = enrichWithMacro(raw, sectors, activeFactors)
+      const results = enrichWithMacro(raw, sectors, activeFactors, rotation)
       for (const r of results) {
         const existing = byCode.get(r.code)
         if (existing) {
           existing.matchedIds.push(preset.id)
           existing.matchedNames.push(preset.name)
         } else {
+          const themes = sectors?.[r.code]?.themes
           byCode.set(r.code, {
             code: r.code,
             name: r.name,
@@ -122,7 +128,10 @@ export default function RecommendationsList({ basePath }: Props) {
             matchedIds: [preset.id],
             matchedNames: [preset.name],
             macroBonus: activeFactors.length > 0
-              ? computeMacroBonus(r.name, sectors?.[r.code]?.themes, activeFactors)
+              ? computeMacroBonus(r.name, themes, activeFactors)
+              : undefined,
+            sectorRotationBonus: rotation
+              ? computeSectorRotationBonus(themes, rotation)
               : undefined
           })
         }
@@ -132,7 +141,7 @@ export default function RecommendationsList({ basePath }: Props) {
     const all = Array.from(byCode.values())
     all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
     return all
-  }, [indicators, fundamentals, sectors, activeFactors, enabledPresets])
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),
@@ -210,6 +219,11 @@ export default function RecommendationsList({ basePath }: Props) {
                     {r.macroBonus && (
                       <div className="mt-2">
                         <MacroBadge bonus={r.macroBonus} />
+                        {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
+                          <span className="text-xs ml-2">
+                            {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
+                          </span>
+                        )}
                       </div>
                     )}
                   </Card>
@@ -341,8 +355,13 @@ export default function RecommendationsList({ basePath }: Props) {
                         매칭 {r.matchedIds.length}개
                       </div>
                       {r.macroBonus && (
-                        <div className="mt-1 flex justify-end">
+                        <div className="mt-1 flex justify-end items-center gap-1">
                           <MacroBadge bonus={r.macroBonus} />
+                          {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
+                            <span className="text-xs">
+                              {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

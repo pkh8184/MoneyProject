@@ -62,6 +62,18 @@ jobs:
           python backtest_factors.py
         continue-on-error: true
 
+      - name: Calculate sector rotation
+        run: |
+          cd scripts
+          python calculate_sector_rotation.py
+        continue-on-error: true
+
+      - name: Fetch news signals
+        run: |
+          cd scripts
+          python fetch_news_signals.py
+        continue-on-error: true
+
       - name: Calculate pattern stats
         run: |
           cd scripts

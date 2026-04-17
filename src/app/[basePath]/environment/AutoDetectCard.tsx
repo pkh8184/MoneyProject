@@ -2,6 +2,7 @@
 import Card from '@/components/ui/Card'
 import { strings } from '@/lib/strings/ko'
 import type { MacroFactor } from '@/lib/macro/types'
+import type { NewsSignalsJson } from '@/lib/types/indicators'
 
 interface Props {
   autoDetected: MacroFactor[]
@@ -9,9 +10,10 @@ interface Props {
   onToggle: (id: string) => void
   onApplyAll: () => void
   updatedAt: string | null
+  news?: NewsSignalsJson | null
 }
 
-export default function AutoDetectCard({ autoDetected, isActive, onToggle, onApplyAll, updatedAt }: Props) {
+export default function AutoDetectCard({ autoDetected, isActive, onToggle, onApplyAll, updatedAt, news }: Props) {
   if (autoDetected.length === 0) {
     return (
       <Card padding="md" className="mb-6">
@@ -38,24 +40,29 @@ export default function AutoDetectCard({ autoDetected, isActive, onToggle, onApp
       <div className="space-y-2">
         {autoDetected.map((f) => {
           const active = isActive(f.id)
+          const newsSignal = news?.signals[f.id]
           return (
-            <div
-              key={f.id}
-              className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary-light dark:bg-bg-secondary-dark"
-            >
-              <span className="text-sm">
-                {f.emoji} {f.name}{' '}
-                <span className={active ? 'text-emerald-600' : 'text-text-secondary-light dark:text-text-secondary-dark'}>
-                  {active ? strings.autoDetect.applied : strings.autoDetect.notApplied}
+            <div key={f.id} className="p-2 rounded-lg bg-bg-secondary-light dark:bg-bg-secondary-dark">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">
+                  {f.emoji} {f.name}{' '}
+                  <span className={active ? 'text-emerald-600' : 'text-text-secondary-light dark:text-text-secondary-dark'}>
+                    {active ? strings.autoDetect.applied : strings.autoDetect.notApplied}
+                  </span>
                 </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => onToggle(f.id)}
-                className="text-xs px-3 py-1 rounded-full bg-bg-primary-light dark:bg-bg-primary-dark"
-              >
-                {active ? strings.autoDetect.turnOff : strings.autoDetect.turnOn}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onToggle(f.id)}
+                  className="text-xs px-3 py-1 rounded-full bg-bg-primary-light dark:bg-bg-primary-dark"
+                >
+                  {active ? strings.autoDetect.turnOff : strings.autoDetect.turnOn}
+                </button>
+              </div>
+              {newsSignal && newsSignal.sample_titles.length > 0 && (
+                <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">
+                  📰 뉴스 근거: &ldquo;{newsSignal.sample_titles[0]}&rdquo; 외 {newsSignal.count - 1}건
+                </div>
+              )}
             </div>
           )
         })}

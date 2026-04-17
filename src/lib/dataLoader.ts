@@ -2,7 +2,8 @@ import { get, set } from 'idb-keyval'
 import type {
   UpdatedAtJson, IndicatorsJson, FundamentalsJson,
   SectorsJson, PatternStatsJson, StocksJson, MacroIndicatorsJson,
-  FactorBacktestJson, StockMacroResponseJson
+  FactorBacktestJson, StockMacroResponseJson, SectorRotationJson,
+  NewsSignalsJson
 } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
@@ -164,6 +165,38 @@ export async function loadStockMacroResponse(tradeDate: string): Promise<StockMa
     if (!res.ok) return null
     const data = (await res.json()) as StockMacroResponseJson
     await setCached(IDB_STOCK_RESP_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_SECTOR_ROT_KEY = 'sector-rotation-cache-v1'
+
+export async function loadSectorRotation(tradeDate: string): Promise<SectorRotationJson | null> {
+  const cached = await getCached<SectorRotationJson>(IDB_SECTOR_ROT_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/sector_rotation.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as SectorRotationJson
+    await setCached(IDB_SECTOR_ROT_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_NEWS_KEY = 'news-signals-cache-v1'
+
+export async function loadNewsSignals(tradeDate: string): Promise<NewsSignalsJson | null> {
+  const cached = await getCached<NewsSignalsJson>(IDB_NEWS_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/news_signals.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as NewsSignalsJson
+    await setCached(IDB_NEWS_KEY, tradeDate, data)
     return data
   } catch {
     return null

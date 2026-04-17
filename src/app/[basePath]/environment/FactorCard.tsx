@@ -9,6 +9,7 @@ interface Props {
   autoDetected?: boolean
   onToggle: () => void
   backtestResult?: FactorBacktestResult
+  activatedAt?: number
 }
 
 function formatMatch(m: { themes?: string[]; nameKeywords?: string[] }): string {
@@ -26,9 +27,26 @@ function confidenceStars(conf: 'low' | 'medium' | 'high'): string {
   }
 }
 
-export default function FactorCard({ factor, active, autoDetected, onToggle, backtestResult }: Props) {
+function activeDays(activatedAt: number | undefined): number | null {
+  if (activatedAt == null) return null
+  const diff = Date.now() - activatedAt
+  return Math.floor(diff / (24 * 60 * 60 * 1000))
+}
+
+function decayPct(days: number | null): number {
+  if (days == null) return 100
+  if (days < 14) return 100
+  if (days < 30) return 85
+  if (days < 60) return 70
+  if (days < 90) return 50
+  if (days < 120) return 30
+  return 20
+}
+
+export default function FactorCard({ factor, active, autoDetected, onToggle, backtestResult, activatedAt }: Props) {
   const benefits = formatMatch(factor.beneficiaries)
   const losers = formatMatch(factor.losers)
+  const days = activeDays(activatedAt)
 
   return (
     <label
@@ -60,6 +78,11 @@ export default function FactorCard({ factor, active, autoDetected, onToggle, bac
             <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark ml-auto">
               {strings.macro.weightLabel(factor.weight)}
             </span>
+            {days !== null && (
+              <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark ml-2">
+                {strings.macro.decayLabel(days, decayPct(days))}
+              </span>
+            )}
           </div>
           <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
             {factor.desc}

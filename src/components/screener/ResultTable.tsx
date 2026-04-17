@@ -49,6 +49,11 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
                   <span className="inline-flex items-center gap-2">
                     {r.name}
                     {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
+                    {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
+                      <span className="text-xs ml-2">
+                        {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
+                      </span>
+                    )}
                   </span>
                 </td>
                 <td className="py-3 pr-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">{r.market}</td>
@@ -71,6 +76,11 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-base">{r.name}</span>
                     {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
+                    {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
+                      <span className="text-xs">
+                        {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
+                      </span>
+                    )}
                   </div>
                   <div className="font-mono text-sm text-text-secondary-light dark:text-text-secondary-dark">
                     {r.code} · {r.market}
