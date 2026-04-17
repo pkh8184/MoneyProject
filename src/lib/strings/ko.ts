@@ -310,6 +310,19 @@ export const strings = {
     notDetected: '저점 정보가 없어 단계 판정 불가',
     hint: '③ 공이 구간 진입 직후가 매수 타이밍이에요. ① 급락이나 ② 횡보 구간에서는 섣불리 들어가지 마세요.'
   },
+  momentum: {
+    panelTitle: '📊 오늘의 체크포인트',
+    summary: (bullish: number, warning: number) =>
+      `긍정 ${bullish}개 · 주의 ${warning}개`,
+    emptyMessage: '감지된 신호가 없어요. 뉴스·공시·실적 이슈 가능성이 있어요.',
+    dataNote: 'ℹ️ 데이터 기준: 어제 종가 · 뉴스·공시는 추적하지 않아요.',
+    moreLink: '자세히 →',
+    timingLatest: '어제 종가 기준',
+    timingRecent: '최근',
+    timingOngoing: '진행 중',
+    expandAria: '체크포인트 펼치기',
+    collapseAria: '체크포인트 접기'
+  },
   presets: {
     golden_cross: {
       name: '골든크로스 (MA20↑MA60)',

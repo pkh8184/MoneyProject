@@ -1,8 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { loadIndicators, loadFundamentals, loadUpdatedAt, loadOhlcvForCode, loadSectors, type SingleStockOhlcv } from '@/lib/dataLoader'
+import {
+  loadIndicators,
+  loadFundamentals,
+  loadUpdatedAt,
+  loadOhlcvForCode,
+  loadSectors,
+  loadPatternStats,
+  loadSectorRotation,
+  type SingleStockOhlcv
+} from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import StockChart from '@/components/stock/StockChart'
 import IndicatorTable from '@/components/stock/IndicatorTable'
@@ -11,9 +20,22 @@ import MatchedPresets from '@/components/stock/MatchedPresets'
 import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
 import BowlPhaseIndicator from '@/components/stock/BowlPhaseIndicator'
 import WatchlistButton from '@/components/stock/WatchlistButton'
+import StockMomentumPanel from '@/components/stock/StockMomentumPanel'
 import MacroDetailPanel from '@/components/macro/MacroDetailPanel'
 import MLPredictionPanel from '@/components/ml/MLPredictionPanel'
-import type { StockIndicators, Fundamental, SectorsJson } from '@/lib/types/indicators'
+import { allPresets } from '@/lib/presets/registry'
+import { computeMacroBonus } from '@/lib/macro/scoring'
+import { computeSectorRotationBonus } from '@/lib/macro/sectorRotation'
+import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { useMlPredictions } from '@/lib/ml/useMlPredictions'
+import { PANEL_ANCHORS } from '@/lib/stockMomentum/types'
+import type {
+  StockIndicators,
+  Fundamental,
+  SectorsJson,
+  PatternStatsJson,
+  SectorRotationJson
+} from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
 
@@ -22,25 +44,57 @@ export default function StockDetail({ code, basePath }: Props) {
   const [fundamental, setFundamental] = useState<Fundamental | undefined>(undefined)
   const [ohlcvFull, setOhlcvFull] = useState<SingleStockOhlcv | null>(null)
   const [sectors, setSectors] = useState<SectorsJson | null>(null)
+  const [patternStats, setPatternStats] = useState<PatternStatsJson | null>(null)
+  const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
   const [loading, setLoading] = useState(true)
+  const { activeFactors } = useMacroFactors()
+  const mlPreds = useMlPredictions()
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund, ohlcv, sec] = await Promise.all([
+      const [ind, fund, ohlcv, sec, ps, rot] = await Promise.all([
         loadIndicators(u.trade_date),
         loadFundamentals(u.trade_date),
         loadOhlcvForCode(u.trade_date, code),
-        loadSectors(u.trade_date)
+        loadSectors(u.trade_date),
+        loadPatternStats(u.trade_date),
+        loadSectorRotation(u.trade_date)
       ])
       const s = ind?.[code] as StockIndicators | undefined
       setStock(s ?? null)
       setFundamental(fund?.[code])
       setOhlcvFull(ohlcv)
       setSectors(sec)
+      setPatternStats(ps)
+      setRotation(rot)
       setLoading(false)
     })
   }, [code])
+
+  const themes = sectors?.[code]?.themes
+  const macroBonus = useMemo(
+    () =>
+      activeFactors.length > 0 && stock
+        ? computeMacroBonus(stock.name, themes, activeFactors)
+        : undefined,
+    [stock, themes, activeFactors]
+  )
+  const sectorRotationBonus = useMemo(
+    () => (rotation && themes ? computeSectorRotationBonus(themes, rotation) : undefined),
+    [themes, rotation]
+  )
+  const mlPrediction = mlPreds?.predictions[code]
+  const matchedPresetIds = useMemo(() => {
+    if (!stock) return []
+    const ids: string[] = []
+    for (const p of allPresets) {
+      try {
+        if (p.filter({ stock, fundamental, params: {} })) ids.push(p.id)
+      } catch {}
+    }
+    return ids
+  }, [stock, fundamental])
 
   if (loading) return <p>{strings.common.loading}</p>
   if (!stock) return (
@@ -82,7 +136,18 @@ export default function StockDetail({ code, basePath }: Props) {
         </div>
       </header>
 
-      <section className="mb-8">
+      <StockMomentumPanel
+        stock={stock}
+        ohlcvFull={ohlcvFull ?? undefined}
+        fundamental={fundamental}
+        macroBonus={macroBonus}
+        sectorRotation={sectorRotationBonus}
+        mlPrediction={mlPrediction}
+        patternStats={patternStats?.by_stock_preset?.[code]}
+        matchedPresetIds={matchedPresetIds}
+      />
+
+      <section className="mb-8 mt-8">
         <StockChart stock={stock} ohlcvFull={ohlcvFull} />
       </section>
 
@@ -94,14 +159,22 @@ export default function StockDetail({ code, basePath }: Props) {
         <h3 className="text-xl font-bold mb-4">{strings.stock.fundamentals} · {strings.stock.supply}</h3>
         <FundamentalTable fundamental={fundamental} />
       </section>
-      <section className="mt-10">
+      <section id={PANEL_ANCHORS.matchedPresets} className="mt-10">
         <h3 className="text-xl font-bold mb-4">{strings.stock.matchedPresets}</h3>
         <MatchedPresets stock={stock} fundamental={fundamental} />
       </section>
-      <BowlPhaseIndicator stock={stock} />
-      <BowlVolumePanel stock={stock} fundamental={fundamental} />
-      <MacroDetailPanel stockName={stock.name} themes={sectors?.[code]?.themes} basePath={basePath} code={code} />
-      <MLPredictionPanel code={code} />
+      <section id={PANEL_ANCHORS.bowlPhase}>
+        <BowlPhaseIndicator stock={stock} />
+      </section>
+      <section id={PANEL_ANCHORS.bowlVolume}>
+        <BowlVolumePanel stock={stock} fundamental={fundamental} />
+      </section>
+      <section id={PANEL_ANCHORS.macroDetail}>
+        <MacroDetailPanel stockName={stock.name} themes={themes} basePath={basePath} code={code} />
+      </section>
+      <section id={PANEL_ANCHORS.mlPrediction}>
+        <MLPredictionPanel code={code} />
+      </section>
     </div>
   )
 }
