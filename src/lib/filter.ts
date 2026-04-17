@@ -1,5 +1,5 @@
 import type { Preset, PresetParams } from './presets/types'
-import type { IndicatorsJson, FundamentalsJson, SectorsJson, StockIndicators, SectorRotationJson } from '@/lib/types/indicators'
+import type { IndicatorsJson, FundamentalsJson, SectorsJson, StockIndicators, SectorRotationJson, MLPredictionsJson, MLPrediction } from '@/lib/types/indicators'
 import type { MacroFactor, MacroBonus } from './macro/types'
 import { computeMacroBonus } from './macro/scoring'
 import { computeSectorRotationBonus, type SectorRotationBonus } from './macro/sectorRotation'
@@ -14,6 +14,7 @@ export interface FilterResult {
   score: number
   macroBonus?: MacroBonus
   sectorRotationBonus?: SectorRotationBonus
+  mlPrediction?: MLPrediction
   finalScore?: number
 }
 
@@ -80,6 +81,25 @@ export function enrichWithMacro(
       macroBonus: bonus,
       sectorRotationBonus: rotationBonus,
       finalScore: r.score + total
+    }
+  })
+  enriched.sort((a, b) => (b.finalScore ?? b.score) - (a.finalScore ?? a.score))
+  return enriched
+}
+
+export function enrichWithMl(
+  results: FilterResult[],
+  predictions: MLPredictionsJson | null
+): FilterResult[] {
+  if (!predictions) return results
+  const map = predictions.predictions
+  const enriched = results.map((r) => {
+    const pred = map[r.code]
+    if (!pred) return r
+    return {
+      ...r,
+      mlPrediction: pred,
+      finalScore: (r.finalScore ?? r.score) + pred.ml_score
     }
   })
   enriched.sort((a, b) => (b.finalScore ?? b.score) - (a.finalScore ?? a.score))

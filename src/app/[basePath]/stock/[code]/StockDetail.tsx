@@ -12,6 +12,7 @@ import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
 import BowlPhaseIndicator from '@/components/stock/BowlPhaseIndicator'
 import WatchlistButton from '@/components/stock/WatchlistButton'
 import MacroDetailPanel from '@/components/macro/MacroDetailPanel'
+import MLPredictionPanel from '@/components/ml/MLPredictionPanel'
 import type { StockIndicators, Fundamental, SectorsJson } from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
@@ -100,6 +101,7 @@ export default function StockDetail({ code, basePath }: Props) {
       <BowlPhaseIndicator stock={stock} />
       <BowlVolumePanel stock={stock} fundamental={fundamental} />
       <MacroDetailPanel stockName={stock.name} themes={sectors?.[code]?.themes} basePath={basePath} code={code} />
+      <MLPredictionPanel code={code} />
     </div>
   )
 }

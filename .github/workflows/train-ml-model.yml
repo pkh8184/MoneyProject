@@ -1,0 +1,46 @@
+name: Train ML Model
+
+on:
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Fetch data branch
+        run: |
+          git fetch origin data
+          git worktree add /tmp/data-branch origin/data
+          mkdir -p public/data
+          cp -r /tmp/data-branch/public/data/* public/data/ || true
+
+      - name: Build features
+        run: |
+          cd scripts
+          python build_ml_features.py historical
+
+      - name: Train model
+        run: |
+          cd scripts
+          python train_ml_model.py
+
+      - name: Commit model to data branch
+        run: |
+          cd /tmp/data-branch
+          mkdir -p public/models public/data
+          cp -r ${{ github.workspace }}/public/models/* public/models/
+          cp ${{ github.workspace }}/public/data/ml_metrics.json public/data/
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          git add -A
+          git commit -m "chore: train ML model $(date +%Y-%m-%d)" || echo "no changes"
+          git push origin HEAD:data

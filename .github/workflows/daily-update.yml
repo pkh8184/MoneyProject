@@ -74,6 +74,18 @@ jobs:
           python fetch_news_signals.py
         continue-on-error: true
 
+      - name: Build ML features (today)
+        run: |
+          cd scripts
+          python build_ml_features.py today
+        continue-on-error: true
+
+      - name: Run ML prediction
+        run: |
+          cd scripts
+          python run_ml_prediction.py
+        continue-on-error: true
+
       - name: Calculate pattern stats
         run: |
           cd scripts

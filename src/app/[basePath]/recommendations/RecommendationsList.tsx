@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { allPresets } from '@/lib/presets/registry'
 import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
-import { runPreset, enrichWithMacro } from '@/lib/filter'
+import { runPreset, enrichWithMacro, enrichWithMl } from '@/lib/filter'
 import {
   loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation
 } from '@/lib/dataLoader'
@@ -13,10 +13,13 @@ import type {
   IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson
 } from '@/lib/types/indicators'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { useMlPredictions } from '@/lib/ml/useMlPredictions'
 import { computeMacroBonus } from '@/lib/macro/scoring'
 import { computeSectorRotationBonus, type SectorRotationBonus } from '@/lib/macro/sectorRotation'
 import type { MacroBonus } from '@/lib/macro/types'
+import type { MLPrediction } from '@/lib/types/indicators'
 import MacroBadge from '@/components/macro/MacroBadge'
+import MLScoreBadge from '@/components/ml/MLScoreBadge'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Pill from '@/components/ui/Pill'
@@ -33,6 +36,7 @@ interface AggRow {
   matchedNames: string[]
   macroBonus?: MacroBonus
   sectorRotationBonus?: SectorRotationBonus
+  mlPrediction?: MLPrediction
 }
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
@@ -69,6 +73,7 @@ export default function RecommendationsList({ basePath }: Props) {
   const [minMatches, setMinMatches] = useState(2)
   const [showFilters, setShowFilters] = useState(false)
   const { activeFactors } = useMacroFactors()
+  const mlPreds = useMlPredictions()
 
   const allIds = useMemo(() => allPresets.map((p) => p.id), [])
   const [enabledIds, setEnabledIds] = useState<Set<string>>(
@@ -112,7 +117,7 @@ export default function RecommendationsList({ basePath }: Props) {
 
     for (const preset of enabledPresets) {
       const raw = runPreset(preset, indicators, fundamentals, {})
-      const results = enrichWithMacro(raw, sectors, activeFactors, rotation)
+      const results = enrichWithMl(enrichWithMacro(raw, sectors, activeFactors, rotation), mlPreds)
       for (const r of results) {
         const existing = byCode.get(r.code)
         if (existing) {
@@ -132,7 +137,8 @@ export default function RecommendationsList({ basePath }: Props) {
               : undefined,
             sectorRotationBonus: rotation
               ? computeSectorRotationBonus(themes, rotation)
-              : undefined
+              : undefined,
+            mlPrediction: r.mlPrediction
           })
         }
       }
@@ -141,7 +147,7 @@ export default function RecommendationsList({ basePath }: Props) {
     const all = Array.from(byCode.values())
     all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
     return all
-  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets])
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets, mlPreds])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),
@@ -216,14 +222,15 @@ export default function RecommendationsList({ basePath }: Props) {
                       매칭 {r.matchedIds.length}개 · 신뢰도 {confidence}%
                     </div>
                     <GaugeBar value={confidence} max={100} />
-                    {r.macroBonus && (
-                      <div className="mt-2">
-                        <MacroBadge bonus={r.macroBonus} />
+                    {(r.macroBonus || r.mlPrediction) && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
                         {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
-                          <span className="text-xs ml-2">
+                          <span className="text-xs">
                             {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                           </span>
                         )}
+                        {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                       </div>
                     )}
                   </Card>
@@ -354,14 +361,15 @@ export default function RecommendationsList({ basePath }: Props) {
                       <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                         매칭 {r.matchedIds.length}개
                       </div>
-                      {r.macroBonus && (
-                        <div className="mt-1 flex justify-end items-center gap-1">
-                          <MacroBadge bonus={r.macroBonus} />
+                      {(r.macroBonus || r.mlPrediction) && (
+                        <div className="mt-1 flex justify-end items-center gap-1 flex-wrap">
+                          {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
                           {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
                             <span className="text-xs">
                               {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                             </span>
                           )}
+                          {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                         </div>
                       )}
                     </div>

@@ -8,11 +8,12 @@ import ParamControls from '@/components/screener/ParamControls'
 import PresetDescription from '@/components/screener/PresetDescription'
 import Card from '@/components/ui/Card'
 import { getExpertPresets, getPresetById } from '@/lib/presets/registry'
-import { runPreset, enrichWithMacro, type FilterResult } from '@/lib/filter'
+import { runPreset, enrichWithMacro, enrichWithMl, type FilterResult } from '@/lib/filter'
 import { loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation } from '@/lib/dataLoader'
 import type { IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson } from '@/lib/types/indicators'
 import type { PresetParams } from '@/lib/presets/types'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { useMlPredictions } from '@/lib/ml/useMlPredictions'
 
 export default function ExpertScreener() {
   const routeParams = useParams()
@@ -26,6 +27,7 @@ export default function ExpertScreener() {
   const [paramsByPreset, setParamsByPreset] = useState<Record<string, PresetParams>>({})
   const [results, setResults] = useState<FilterResult[]>([])
   const { activeFactors } = useMacroFactors()
+  const mlPreds = useMlPredictions()
 
   const presets = useMemo(() => getExpertPresets(), [])
 
@@ -59,8 +61,8 @@ export default function ExpertScreener() {
     }
     const params = paramsByPreset[currentPreset.id] ?? {}
     const out = runPreset(currentPreset, indicators, fundamentals, params)
-    setResults(enrichWithMacro(out, sectors, activeFactors, rotation))
-  }, [indicators, fundamentals, sectors, rotation, activeFactors, currentPreset, paramsByPreset])
+    setResults(enrichWithMl(enrichWithMacro(out, sectors, activeFactors, rotation), mlPreds))
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, currentPreset, paramsByPreset, mlPreds])
 
   return (
     <div className="flex flex-col md:flex-row gap-4">

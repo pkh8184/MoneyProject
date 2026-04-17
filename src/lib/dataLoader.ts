@@ -3,7 +3,7 @@ import type {
   UpdatedAtJson, IndicatorsJson, FundamentalsJson,
   SectorsJson, PatternStatsJson, StocksJson, MacroIndicatorsJson,
   FactorBacktestJson, StockMacroResponseJson, SectorRotationJson,
-  NewsSignalsJson
+  NewsSignalsJson, MLPredictionsJson, MLMetricsJson
 } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
@@ -165,6 +165,37 @@ export async function loadStockMacroResponse(tradeDate: string): Promise<StockMa
     if (!res.ok) return null
     const data = (await res.json()) as StockMacroResponseJson
     await setCached(IDB_STOCK_RESP_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_ML_PRED_KEY = 'ml-predictions-cache-v1'
+const IDB_ML_METRICS_KEY = 'ml-metrics-cache-v1'
+
+export async function loadMlPredictions(tradeDate: string): Promise<MLPredictionsJson | null> {
+  const cached = await getCached<MLPredictionsJson>(IDB_ML_PRED_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/predictions.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as MLPredictionsJson
+    await setCached(IDB_ML_PRED_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+export async function loadMlMetrics(tradeDate: string): Promise<MLMetricsJson | null> {
+  const cached = await getCached<MLMetricsJson>(IDB_ML_METRICS_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/ml_metrics.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as MLMetricsJson
+    await setCached(IDB_ML_METRICS_KEY, tradeDate, data)
     return data
   } catch {
     return null
