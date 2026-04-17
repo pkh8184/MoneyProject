@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { computeMacroBonus } from '../scoring'
 import type { MacroFactor } from '../types'
 
-function mkFactor(id: string, benefThemes: string[] = [], lossThemes: string[] = []): MacroFactor {
+function mkFactor(id: string, benefThemes: string[] = [], lossThemes: string[] = [], weight: number = 5): MacroFactor {
   return {
     id,
     category: 'theme',
@@ -12,7 +12,8 @@ function mkFactor(id: string, benefThemes: string[] = [], lossThemes: string[] =
     desc: '',
     beneficiaries: { themes: benefThemes },
     losers: { themes: lossThemes },
-    defaultActive: false
+    defaultActive: false,
+    weight
   }
 }
 
@@ -68,5 +69,11 @@ describe('computeMacroBonus', () => {
     const result = computeMacroBonus('삼성전자', ['반도체'], [f])
     expect(result.total).toBe(0)
     expect(result.detail).toHaveLength(0)
+  })
+
+  it('uses factor weight when weight != 5', () => {
+    const f = mkFactor('war', ['방산'], [], 10)
+    const result = computeMacroBonus('한화에어로스페이스', ['방산'], [f])
+    expect(result.total).toBe(10)
   })
 })

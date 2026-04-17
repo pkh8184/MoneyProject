@@ -23,6 +23,7 @@ export interface MacroFactor {
   beneficiaries: FactorMatch
   losers: FactorMatch
   defaultActive: boolean
+  weight: number
 }
 
 export interface MacroBonusDetail {

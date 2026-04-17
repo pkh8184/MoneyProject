@@ -241,7 +241,20 @@ export const strings = {
     roleBenefit: '(수혜)',
     roleLoss: '(피해)',
     totalLine: '합계',
-    goToSettings: '🌍 시장 환경 설정 바로가기 →'
+    goToSettings: '🌍 시장 환경 설정 바로가기 →',
+    weightLabel: (w: number) => `강도: ±${w}`
+  },
+  autoDetect: {
+    title: (n: number) => `🤖 자동 감지됨 (${n}개)`,
+    description: '오늘 시장 상황으로 이런 팩터들이 맞아 보여요',
+    noneDetected: '🌤️ 오늘은 특별한 시장 이벤트가 감지되지 않았어요',
+    badgeLabel: '💡 자동 감지',
+    applied: '적용됨',
+    notApplied: '적용 안 됨',
+    turnOn: '적용',
+    turnOff: '끄기',
+    applyAll: '💡 자동 감지 전부 켜기',
+    updatedAt: (iso: string) => `업데이트: ${new Date(iso).toLocaleString('ko-KR')}`
   },
   bowlPhase: {
     title: '🍚 밥그릇 진행 단계',

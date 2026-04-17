@@ -46,4 +46,20 @@ describe('macroFactors data', () => {
     expect(count('theme')).toBe(5)
     expect(count('sentiment')).toBe(3)
   })
+
+  it('all factors have weight between 3 and 10', () => {
+    for (const f of macroFactors) {
+      expect(f.weight).toBeGreaterThanOrEqual(3)
+      expect(f.weight).toBeLessThanOrEqual(10)
+    }
+  })
+
+  it('weight distribution matches spec', () => {
+    const count = (w: number) => macroFactors.filter((f) => f.weight === w).length
+    expect(count(10)).toBe(3)
+    expect(count(8)).toBe(6)
+    expect(count(7)).toBe(6)
+    expect(count(5)).toBe(9)
+    expect(count(3)).toBe(6)
+  })
 })

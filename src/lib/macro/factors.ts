@@ -17,7 +17,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['항공·여행']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 10
   },
   {
     id: 'nk_provocation',
@@ -33,7 +34,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       nameKeywords: ['현대엘리베이터', '아난티']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
   {
     id: 'middle_east',
@@ -49,7 +51,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['항공·여행']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'us_china',
@@ -64,7 +67,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       nameKeywords: ['LG생활건강', '아모레퍼시픽', '코스맥스']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 8
   },
   {
     id: 'trade_boom',
@@ -77,7 +81,8 @@ export const macroFactors: MacroFactor[] = [
       themes: ['해운·물류']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'taiwan_tension',
@@ -91,7 +96,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['한미반도체', '이수페타시스']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
   {
     id: 'korea_peace',
@@ -105,7 +111,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['현대엘리베이터', '아난티', '현대건설']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
 
   // ========== B. 금리·환율 (5) ==========
@@ -122,7 +129,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['AI', '바이오', '건설']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 8
   },
   {
     id: 'rate_cut',
@@ -137,7 +145,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['금융']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 8
   },
   {
     id: 'krw_weak',
@@ -153,7 +162,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['항공·여행', '유통']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
   {
     id: 'krw_strong',
@@ -169,7 +179,8 @@ export const macroFactors: MacroFactor[] = [
       themes: ['반도체'],
       nameKeywords: ['현대차', '기아']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
   {
     id: 'inflation',
@@ -184,7 +195,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['AI', '바이오']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 8
   },
 
   // ========== C. 원자재·에너지 (5) ==========
@@ -202,7 +214,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['항공·여행', '해운·물류']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 8
   },
   {
     id: 'oil_down',
@@ -217,7 +230,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['정유·에너지']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
   {
     id: 'gold_up',
@@ -231,7 +245,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['고려아연', '풍산']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
   {
     id: 'lithium_copper',
@@ -245,7 +260,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['LG화학', '포스코퓨처엠', '고려아연']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
   {
     id: 'grain_up',
@@ -261,7 +277,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       nameKeywords: ['하림', '마니커']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 3
   },
 
   // ========== D. 국내 경제 (5) ==========
@@ -276,7 +293,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['건설', '시멘트·건자재']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'realestate_boost',
@@ -290,7 +308,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['삼표시멘트', '한일시멘트', '아시아시멘트']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'domestic_down',
@@ -303,7 +322,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['유통', '식품·음료']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'domestic_up',
@@ -317,7 +337,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['호텔신라', 'CJ ENM']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'export_boom',
@@ -331,7 +352,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['현대차', '기아']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
 
   // ========== E. 산업 테마 (5) ==========
@@ -347,7 +369,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['SK하이닉스', '한미반도체']
     },
     losers: {},
-    defaultActive: true
+    defaultActive: true,
+    weight: 8
   },
   {
     id: 'ev_boom',
@@ -360,7 +383,8 @@ export const macroFactors: MacroFactor[] = [
       themes: ['전기차', '2차전지']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
   {
     id: 'bio_boom',
@@ -373,7 +397,8 @@ export const macroFactors: MacroFactor[] = [
       themes: ['바이오']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'kcontent_boom',
@@ -387,7 +412,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['CJ ENM', '하이브', '스튜디오드래곤']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
   {
     id: 'defense_boom',
@@ -400,7 +426,8 @@ export const macroFactors: MacroFactor[] = [
       themes: ['방산']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 5
   },
 
   // ========== F. 시장 심리 (3) ==========
@@ -418,7 +445,8 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       nameKeywords: ['삼성전자', 'SK하이닉스', '현대차', 'LG에너지솔루션', '카카오', '네이버']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 10
   },
   {
     id: 'foreign_buy',
@@ -432,7 +460,8 @@ export const macroFactors: MacroFactor[] = [
       nameKeywords: ['삼성전자', 'SK하이닉스']
     },
     losers: {},
-    defaultActive: false
+    defaultActive: false,
+    weight: 7
   },
   {
     id: 'kospi_crash',
@@ -448,6 +477,7 @@ export const macroFactors: MacroFactor[] = [
     losers: {
       themes: ['AI', '바이오']
     },
-    defaultActive: false
+    defaultActive: false,
+    weight: 10
   }
 ]

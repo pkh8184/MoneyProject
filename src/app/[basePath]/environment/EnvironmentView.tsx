@@ -1,11 +1,15 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { useMacroAutoDetect } from '@/lib/macro/useMacroAutoDetect'
 import { useFirstVisit } from '@/lib/storage/useFirstVisit'
 import FirstVisitGuide from '@/components/common/FirstVisitGuide'
 import FactorCard from './FactorCard'
+import AutoDetectCard from './AutoDetectCard'
 import { strings } from '@/lib/strings/ko'
+import { loadFundamentals, loadMacroIndicators, loadUpdatedAt } from '@/lib/dataLoader'
 import type { FactorCategory, MacroFactor } from '@/lib/macro/types'
+import type { FundamentalsJson, MacroIndicatorsJson } from '@/lib/types/indicators'
 
 const CATEGORY_ORDER: FactorCategory[] = [
   'geopolitics',
@@ -17,13 +21,35 @@ const CATEGORY_ORDER: FactorCategory[] = [
 ]
 
 export default function EnvironmentView() {
-  const { all, activeIds, toggle, clearAll, isActive } = useMacroFactors()
+  const [fundamentals, setFundamentals] = useState<FundamentalsJson | null>(null)
+  const [indicators, setIndicators] = useState<MacroIndicatorsJson | null>(null)
+
+  useEffect(() => {
+    loadUpdatedAt().then(async (u) => {
+      if (!u) return
+      const [fund, ind] = await Promise.all([
+        loadFundamentals(u.trade_date),
+        loadMacroIndicators(u.trade_date)
+      ])
+      setFundamentals(fund)
+      setIndicators(ind)
+    })
+  }, [])
+
+  const autoDetectedIds = useMacroAutoDetect(fundamentals)
+  const { all, activeIds, toggle, clearAll, isActive, isAutoDetected, applyAllAutoDetected } =
+    useMacroFactors('anon', autoDetectedIds)
   const [firstVisit, markVisited] = useFirstVisit('environment')
   const [showGuide, setShowGuide] = useState(false)
 
   useEffect(() => {
     if (firstVisit) setShowGuide(true)
   }, [firstVisit])
+
+  const autoDetectedFactors = useMemo(
+    () => all.filter((f) => autoDetectedIds.includes(f.id)),
+    [all, autoDetectedIds]
+  )
 
   function factorsByCategory(cat: FactorCategory): MacroFactor[] {
     return all.filter((f) => f.category === cat)
@@ -35,6 +61,14 @@ export default function EnvironmentView() {
       <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-4">
         {strings.environment.subtitle}
       </p>
+
+      <AutoDetectCard
+        autoDetected={autoDetectedFactors}
+        isActive={isActive}
+        onToggle={toggle}
+        onApplyAll={applyAllAutoDetected}
+        updatedAt={indicators?.updated_at ?? null}
+      />
 
       <div className="mb-6 p-4 rounded-2xl bg-bg-secondary-light dark:bg-bg-secondary-dark flex items-center justify-between flex-wrap gap-2">
         <span className="font-bold">
@@ -66,6 +100,7 @@ export default function EnvironmentView() {
                   key={f.id}
                   factor={f}
                   active={isActive(f.id)}
+                  autoDetected={isAutoDetected(f.id)}
                   onToggle={() => toggle(f.id)}
                 />
               ))}
