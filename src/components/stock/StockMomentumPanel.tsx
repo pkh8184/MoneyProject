@@ -31,8 +31,21 @@ function timingLabel(t: Signal['timing']): string {
 }
 
 export default function StockMomentumPanel(props: Props) {
-  const { defaultOpen = true, ...ctx } = props
-  const analysis = useMemo(() => analyzeMomentum(ctx), [ctx])
+  const {
+    defaultOpen = true,
+    stock,
+    ohlcvFull,
+    fundamental,
+    macroBonus,
+    sectorRotation,
+    mlPrediction,
+    patternStats,
+    matchedPresetIds
+  } = props
+  const analysis = useMemo(
+    () => analyzeMomentum({ stock, ohlcvFull, fundamental, macroBonus, sectorRotation, mlPrediction, patternStats, matchedPresetIds }),
+    [stock, ohlcvFull, fundamental, macroBonus, sectorRotation, mlPrediction, patternStats, matchedPresetIds]
+  )
   const [open, setOpen] = useState(defaultOpen)
 
   // 카테고리별 그룹핑

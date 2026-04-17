@@ -62,9 +62,15 @@ describe('detectShortTermTrendChange', () => {
     expect(s!.strength).toBeGreaterThanOrEqual(1)
   })
   it('detects 3+ conditions as strength 3', () => {
+    // 3개 조건: MA20↑MA60 교차 + MACD 상승 전환 + 단기 정배열
+    const ma5 = Array(30).fill(110)
+    const ma20 = Array(30).fill(100).map((v, i) => i === 28 ? 99 : i === 29 ? 101 : v)
+    const ma60 = Array(30).fill(100).map((v, i) => i === 28 ? 101 : i === 29 ? 99 : v)
     const stock = mkStock({
-      ma20: Array(30).fill(100).map((v, i) => i === 28 ? 99 : i === 29 ? 101 : v),
-      ma60: Array(30).fill(100).map((v, i) => i === 28 ? 101 : i === 29 ? 99 : v),
+      ma5,
+      ma20,
+      ma60,
+      ma120: Array(30).fill(null),
       macd_line: Array(30).fill(0).map((v, i) => i === 28 ? -1 : i === 29 ? 1 : v),
       macd_signal: Array(30).fill(0).map((v, i) => i === 28 ? 0 : i === 29 ? 0 : v),
       macd_hist: Array(30).fill(0).map((v, i) => i === 28 ? -1 : i === 29 ? 1 : v)
@@ -72,6 +78,17 @@ describe('detectShortTermTrendChange', () => {
     const s = detectShortTermTrendChange(ctx({ stock }))
     expect(s).not.toBeNull()
     expect(s!.strength).toBe(3)
+  })
+  it('does not double-count MACD line cross and histogram flip (same event)', () => {
+    // MACD 라인 교차와 히스토그램 음→양은 동일 이벤트 — 하나만 카운트
+    const stock = mkStock({
+      macd_line: Array(30).fill(0).map((v, i) => i === 28 ? -1 : i === 29 ? 1 : v),
+      macd_signal: Array(30).fill(0),
+      macd_hist: Array(30).fill(0).map((v, i) => i === 28 ? -1 : i === 29 ? 1 : v)
+    })
+    const s = detectShortTermTrendChange(ctx({ stock }))
+    expect(s).not.toBeNull()
+    expect(s!.strength).toBe(1) // 이전 버전에서는 2로 오계산됨
   })
 })
 

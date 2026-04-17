@@ -2,6 +2,9 @@
 import type { Signal, DetectContext } from './types'
 import { PANEL_ANCHORS } from './types'
 import { detectBowlPhase } from '@/lib/bowl/detectPhase'
+import { strings } from '@/lib/strings/ko'
+
+const S = strings.momentum.signals
 
 // ----- helpers -----
 function last<T>(arr: readonly T[] | undefined | null, offset: number = 0): T | undefined {
@@ -36,27 +39,27 @@ export function detectShortTermTrendChange(ctx: DetectContext): Signal | null {
   // a. MA20 > MA60 상향 돌파 (최근 3일)
   const gc = crossedUp(stock.ma20, stock.ma60, 3)
   if (gc.crossed) {
-    conditions.push('MA20↑MA60')
+    conditions.push(S.shortTermTrend.condMa)
     if (gc.daysAgo! < minDaysAgo) minDaysAgo = gc.daysAgo!
   }
 
-  // b. MACD 라인 > 시그널 상향 돌파 (최근 3일)
+  // b+c. MACD 상승 전환 — line↑signal 또는 hist 음→양 (동일 이벤트 이중 집계 방지)
   const mc = crossedUp(stock.macd_line, stock.macd_signal, 3)
-  if (mc.crossed) {
-    conditions.push('MACD↑시그널')
-    if (mc.daysAgo! < minDaysAgo) minDaysAgo = mc.daysAgo!
-  }
-
-  // c. MACD 히스토그램 음→양 (최근 3일)
-  for (let offset = 0; offset < 3; offset++) {
-    const hT = last(stock.macd_hist, offset)
-    const hY = last(stock.macd_hist, offset + 1)
-    if (!isNum(hT) || !isNum(hY)) continue
-    if (hY <= 0 && hT > 0) {
-      conditions.push('MACD히스토 양전환')
-      if (offset < minDaysAgo) minDaysAgo = offset
-      break
+  let macdDaysAgo: number | null = mc.crossed ? mc.daysAgo : null
+  if (!mc.crossed) {
+    for (let offset = 0; offset < 3; offset++) {
+      const hT = last(stock.macd_hist, offset)
+      const hY = last(stock.macd_hist, offset + 1)
+      if (!isNum(hT) || !isNum(hY)) continue
+      if (hY <= 0 && hT > 0) {
+        macdDaysAgo = offset
+        break
+      }
     }
+  }
+  if (macdDaysAgo !== null) {
+    conditions.push(S.shortTermTrend.condMacd)
+    if (macdDaysAgo < minDaysAgo) minDaysAgo = macdDaysAgo
   }
 
   // d. MA5 > MA20 > MA60 (MA120 미만 or 없음)
@@ -66,7 +69,7 @@ export function detectShortTermTrendChange(ctx: DetectContext): Signal | null {
   const m120 = last(stock.ma120)
   if (isNum(m5) && isNum(m20) && isNum(m60) && m5 > m20 && m20 > m60) {
     if (!isNum(m120) || m120 >= m60) {
-      conditions.push('단기 정배열')
+      conditions.push(S.shortTermTrend.condAlign)
     }
   }
 
@@ -79,8 +82,8 @@ export function detectShortTermTrendChange(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing,
-    label: '단기 추세 전환',
-    description: 'MA·MACD 상승 전환 신호',
+    label: S.shortTermTrend.label,
+    description: S.shortTermTrend.description,
     detail: conditions.join(' · '),
     linkAnchor: PANEL_ANCHORS.matchedPresets
   }
@@ -95,17 +98,19 @@ export function detectVolumeAnomaly(ctx: DetectContext): Signal | null {
   const open = stock.open
   if (!vol || vol.length < 21 || !close || close.length < 21) return null
 
-  const conditions: string[] = []
-
-  // 오늘 거래량 ≥ 20일 평균 × 1.5 & 양봉
   const today = vol[vol.length - 1]
   const yestClose = close[close.length - 2]
   const todayClose = close[close.length - 1]
+  if (!isNum(todayClose) || !isNum(yestClose)) return null
   const todayOpen = open ? open[open.length - 1] : undefined
   const isBull = isNum(todayOpen) ? todayClose > todayOpen : todayClose > yestClose
+
+  const conditions: string[] = []
+
+  // 오늘 거래량 ≥ 20일 평균 × 1.5 & 양봉
   if (isNum(today) && isNum(volAvg20) && volAvg20 > 0 && today >= volAvg20 * 1.5 && isBull) {
     const ratio = today / volAvg20
-    conditions.push(`급증 (${ratio.toFixed(1)}배)`)
+    conditions.push(S.volumeAnomaly.spike(ratio.toFixed(1)))
   }
 
   // 최근 10일 평균 > 이전 10일 평균 × 1.3
@@ -113,7 +118,7 @@ export function detectVolumeAnomaly(ctx: DetectContext): Signal | null {
     const recent = vol.slice(-10).reduce((a, b) => a + (b ?? 0), 0) / 10
     const prev = vol.slice(-20, -10).reduce((a, b) => a + (b ?? 0), 0) / 10
     if (prev > 0 && recent > prev * 1.3) {
-      conditions.push('추세적 증가')
+      conditions.push(S.volumeAnomaly.trend)
     }
   }
 
@@ -125,8 +130,8 @@ export function detectVolumeAnomaly(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'latest',
-    label: '거래량 이상',
-    description: '매수세 유입',
+    label: S.volumeAnomaly.label,
+    description: S.volumeAnomaly.description,
     detail: conditions.join(' · '),
     linkAnchor: PANEL_ANCHORS.bowlVolume
   }
@@ -150,9 +155,9 @@ export function detectRsiRebound(ctx: DetectContext): Signal | null {
       tone: 'bullish',
       strength: 2,
       timing: 'latest',
-      label: 'RSI 과매도 이탈',
-      description: '반등 초입 구간',
-      detail: `어제 ${yest.toFixed(0)} → 오늘 ${today.toFixed(0)}`,
+      label: S.rsi.oversoldExit.label,
+      description: S.rsi.oversoldExit.description,
+      detail: S.rsi.oversoldExit.detail(yest.toFixed(0), today.toFixed(0)),
       linkAnchor: PANEL_ANCHORS.matchedPresets
     }
   }
@@ -165,9 +170,9 @@ export function detectRsiRebound(ctx: DetectContext): Signal | null {
       tone: 'bullish',
       strength: 1,
       timing: 'ongoing',
-      label: 'RSI 건강한 모멘텀',
-      description: '50~70 구간 상승 중',
-      detail: `RSI ${today.toFixed(0)}`,
+      label: S.rsi.healthy.label,
+      description: S.rsi.healthy.description,
+      detail: S.rsi.healthy.detail(today.toFixed(0)),
       linkAnchor: PANEL_ANCHORS.matchedPresets
     }
   }
@@ -180,9 +185,9 @@ export function detectRsiRebound(ctx: DetectContext): Signal | null {
       tone: 'bullish',
       strength: 1,
       timing: 'recent',
-      label: 'RSI 과매도 회복',
-      description: '30~50 구간 상승 중',
-      detail: `RSI ${today.toFixed(0)}`,
+      label: S.rsi.recovering.label,
+      description: S.rsi.recovering.description,
+      detail: S.rsi.recovering.detail(today.toFixed(0)),
       linkAnchor: PANEL_ANCHORS.matchedPresets
     }
   }
@@ -223,16 +228,16 @@ export function detectNewHighBreak(ctx: DetectContext): Signal | null {
   let label = ''
   if (broke52w) {
     strength = 3
-    label = '52주 신고가 돌파'
+    label = S.newHigh.break52w
   } else if (near52w && broke60d) {
     strength = 2
-    label = '52주 근접 + 60일 돌파'
+    label = S.newHigh.near52wAnd60d
   } else if (near52w) {
     strength = 1
-    label = '52주 고점 근접'
+    label = S.newHigh.near52w
   } else {
     strength = 1
-    label = '60일 신고가 돌파'
+    label = S.newHigh.break60d
   }
 
   return {
@@ -242,7 +247,7 @@ export function detectNewHighBreak(ctx: DetectContext): Signal | null {
     strength,
     timing: 'latest',
     label,
-    description: '강한 추세 — 장기 저항 돌파',
+    description: S.newHigh.description,
     linkAnchor: PANEL_ANCHORS.matchedPresets
   }
 }
@@ -282,9 +287,9 @@ export function detectBbLowerBounce(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'latest',
-    label: '바닥 터치 반등',
-    description: '볼린저 하단 반등',
-    detail: `최근 5일 중 ${touches}회 터치`,
+    label: S.bbLowerBounce.label,
+    description: S.bbLowerBounce.description,
+    detail: S.bbLowerBounce.detail(touches),
     linkAnchor: PANEL_ANCHORS.matchedPresets
   }
 }
@@ -313,13 +318,13 @@ export function detectSupplyStrong(ctx: DetectContext): Signal | null {
   const parts: string[] = []
   if (foreignStreak && institutionStreak) {
     strength = 3
-    parts.push('외국인·기관 동시')
+    parts.push(S.supplyStrong.foreignAndInstitution)
   } else if ((foreignStreak || institutionStreak) && todayIsMax) {
     strength = 2
-    parts.push(foreignStreak ? '외국인 지속' : '기관 지속')
-    parts.push('오늘 최대 매집')
+    parts.push(foreignStreak ? S.supplyStrong.foreignStreak : S.supplyStrong.institutionStreak)
+    parts.push(S.supplyStrong.todayMax)
   } else {
-    parts.push(foreignStreak ? '외국인 지속' : '기관 지속')
+    parts.push(foreignStreak ? S.supplyStrong.foreignStreak : S.supplyStrong.institutionStreak)
   }
 
   return {
@@ -328,9 +333,9 @@ export function detectSupplyStrong(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'ongoing',
-    label: '수급 강세',
+    label: S.supplyStrong.label,
     description: parts.join(' · '),
-    detail: '10일 중 7일 이상 순매수',
+    detail: S.supplyStrong.detail,
     linkAnchor: PANEL_ANCHORS.matchedPresets
   }
 }
@@ -346,14 +351,14 @@ export function detectMacroBenefit(ctx: DetectContext): Signal | null {
   const parts: string[] = []
   if (total + rotDelta >= 15 && total > 0 && isSectorStrong) {
     strength = 3
-    parts.push(`팩터 +${total}`, `섹터 +${rotDelta}`)
+    parts.push(S.macroBenefit.factor(total), S.macroBenefit.sector(rotDelta))
   } else if (total >= 6 || (total > 0 && isSectorStrong)) {
     strength = 2
-    if (total > 0) parts.push(`팩터 +${total}`)
-    if (isSectorStrong) parts.push(`섹터 +${rotDelta}`)
+    if (total > 0) parts.push(S.macroBenefit.factor(total))
+    if (isSectorStrong) parts.push(S.macroBenefit.sector(rotDelta))
   } else {
-    if (total > 0) parts.push(`팩터 +${total}`)
-    if (isSectorStrong) parts.push(`섹터 +${rotDelta}`)
+    if (total > 0) parts.push(S.macroBenefit.factor(total))
+    if (isSectorStrong) parts.push(S.macroBenefit.sector(rotDelta))
   }
 
   return {
@@ -362,8 +367,8 @@ export function detectMacroBenefit(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'ongoing',
-    label: '매크로 환경 수혜',
-    description: '시장 환경·섹터가 유리',
+    label: S.macroBenefit.label,
+    description: S.macroBenefit.description,
     detail: parts.join(' · '),
     linkAnchor: PANEL_ANCHORS.macroDetail
   }
@@ -383,9 +388,9 @@ export function detectMlBullish(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'latest',
-    label: 'ML 예측 긍정',
-    description: `D+20 초과수익 확률 ${Math.round(prob * 100)}%`,
-    detail: `+${p.ml_score}점 기대`,
+    label: S.mlBullish.label,
+    description: S.mlBullish.description(Math.round(prob * 100)),
+    detail: S.mlBullish.detail(p.ml_score),
     linkAnchor: PANEL_ANCHORS.mlPrediction
   }
 }
@@ -414,15 +419,16 @@ export function detectHistoricalWinner(ctx: DetectContext): Signal | null {
   if (avgWin < 60) return null
 
   const strength: 1 | 2 | 3 = avgWin >= 80 ? 3 : avgWin >= 70 ? 2 : 1
+  const avgStr = `${avgReturn > 0 ? '+' : ''}${avgReturn.toFixed(2)}`
   return {
     id: 'historical_winner',
     category: 'historical',
     tone: 'bullish',
     strength,
     timing: 'ongoing',
-    label: '과거 승률 양호',
-    description: `매칭 신호 승률 ${Math.round(avgWin)}% · 평균 ${avgReturn > 0 ? '+' : ''}${avgReturn.toFixed(2)}%`,
-    detail: `과거 총 ${totalSamples}건`
+    label: S.historicalWinner.label,
+    description: S.historicalWinner.description(Math.round(avgWin), avgStr),
+    detail: S.historicalWinner.detail(totalSamples)
   }
 }
 
@@ -444,9 +450,9 @@ export function detectBowlPhase3(ctx: DetectContext): Signal | null {
     tone: 'bullish',
     strength,
     timing: 'ongoing',
-    label: '밥그릇 공이 구간',
-    description: '역배열→정배열 변곡점',
-    detail: `거래량 점수 ${volScore}`,
+    label: S.bowlPhase3.label,
+    description: S.bowlPhase3.description,
+    detail: S.bowlPhase3.detail(volScore),
     linkAnchor: PANEL_ANCHORS.bowlPhase
   }
 }
@@ -463,15 +469,15 @@ export function detectOverheatedWarning(ctx: DetectContext): Signal | null {
   const parts: string[] = []
   if (isNum(rsi) && rsi > 70) {
     count++
-    parts.push(`RSI ${rsi.toFixed(0)}`)
+    parts.push(S.overheated.rsi(rsi.toFixed(0)))
   }
   if (isNum(close) && isNum(high52w) && stock.has_52w && close >= high52w * 0.95) {
     count++
-    parts.push('52주 고점 근접')
+    parts.push(S.overheated.near52w)
   }
   if (isNum(per) && per > 50) {
     count++
-    parts.push(`PER ${per.toFixed(0)}`)
+    parts.push(S.overheated.per(per.toFixed(0)))
   }
 
   if (count === 0) return null
@@ -482,8 +488,8 @@ export function detectOverheatedWarning(ctx: DetectContext): Signal | null {
     tone: 'warning',
     strength,
     timing: 'latest',
-    label: '과열·고점 근접',
-    description: '단기 조정 가능',
+    label: S.overheated.label,
+    description: S.overheated.description,
     detail: parts.join(' · ')
   }
 }
@@ -500,7 +506,7 @@ export function detectDownTrendWarning(ctx: DetectContext): Signal | null {
   const parts: string[] = []
   if (isNum(m5) && isNum(m20) && isNum(m60) && isNum(m120) && m5 < m20 && m20 < m60 && m60 < m120) {
     count++
-    parts.push('역배열')
+    parts.push(S.downTrend.inverted)
   }
 
   const vol = stock.volume
@@ -509,7 +515,7 @@ export function detectDownTrendWarning(ctx: DetectContext): Signal | null {
     const avg20 = stock.vol_avg20
     if (isNum(avg20) && avg20 > 0 && recent5 <= avg20 * 0.7) {
       count++
-      parts.push('거래량 이탈')
+      parts.push(S.downTrend.volumeWeak)
     }
   }
 
@@ -521,8 +527,8 @@ export function detectDownTrendWarning(ctx: DetectContext): Signal | null {
     tone: 'warning',
     strength: Math.min(strength, 3) as 1 | 2 | 3,
     timing: 'ongoing',
-    label: '하락 추세',
-    description: '전반적 흐름 하향',
+    label: S.downTrend.label,
+    description: S.downTrend.description,
     detail: parts.join(' · ')
   }
 }
