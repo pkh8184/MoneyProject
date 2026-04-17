@@ -75,10 +75,10 @@ def compute_return_stat(returns: list[float]) -> dict:
 
 
 def aggregate_events(ohlcv: dict, events: list[int]) -> dict:
-    """이벤트 시점별 D+1/D+3/D+7 수익률 집계."""
+    """이벤트 시점별 D+1/D+3/D+7/D+14 수익률 집계."""
     close = ohlcv['close']
     n = len(close)
-    r1, r3, r7 = [], [], []
+    r1, r3, r7, r14 = [], [], [], []
     for t in events:
         c0 = close[t]
         if c0 <= 0:
@@ -89,11 +89,14 @@ def aggregate_events(ohlcv: dict, events: list[int]) -> dict:
             r3.append((close[t+3] - c0) / c0 * 100)
         if t + 7 < n:
             r7.append((close[t+7] - c0) / c0 * 100)
+        if t + 14 < n:
+            r14.append((close[t+14] - c0) / c0 * 100)
     return {
         'sample_count': len(events),
         'd1': compute_return_stat(r1),
         'd3': compute_return_stat(r3),
-        'd7': compute_return_stat(r7)
+        'd7': compute_return_stat(r7),
+        'd14': compute_return_stat(r14)
     }
 
 
