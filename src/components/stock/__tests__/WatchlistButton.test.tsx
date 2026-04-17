@@ -10,18 +10,18 @@ describe('WatchlistButton', () => {
 
   it('renders empty star initially', () => {
     render(<WatchlistButton code="005930" />)
-    expect(screen.getByLabelText('지켜볼 종목에 추가')).toBeInTheDocument()
+    expect(screen.getByLabelText('관심 종목에 추가')).toBeInTheDocument()
   })
 
   it('toggles to filled star after click', () => {
     render(<WatchlistButton code="005930" />)
-    fireEvent.click(screen.getByLabelText('지켜볼 종목에 추가'))
-    expect(screen.getByLabelText('지켜볼 종목에서 빼기')).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('관심 종목에 추가'))
+    expect(screen.getByLabelText('관심 종목에서 빼기')).toBeInTheDocument()
   })
 
   it('persists toggle to localStorage', () => {
     render(<WatchlistButton code="005930" />)
-    fireEvent.click(screen.getByLabelText('지켜볼 종목에 추가'))
+    fireEvent.click(screen.getByLabelText('관심 종목에 추가'))
     const raw = localStorage.getItem('ws:watchlist:anon')
     expect(raw).not.toBeNull()
     const parsed = JSON.parse(raw!)
