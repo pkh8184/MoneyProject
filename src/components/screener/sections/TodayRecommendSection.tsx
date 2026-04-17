@@ -28,14 +28,12 @@ export default function TodayRecommendSection({ indicators, fundamentals, patter
     return collected.filter((r) => {
       if (seen.has(r.code)) return false
       seen.add(r.code)
-      // 과거 통계가 충분한 종목 중 기대수익 음수 또는 신뢰 40% 미만은 추천에서 제외
-      // D+14 우선, 없으면 D+7 사용 (워크플로 재실행 전 호환)
+      // 과거 통계 없는 종목은 추천에서 제외 (방향성 판별 불가)
       const stats = patternStats?.by_stock_preset?.[r.code]?.volume_spike
       const horizon = stats?.d14 ?? stats?.d7
-      if (stats && stats.sample_count >= 5 && horizon) {
-        if (horizon.avg < 0) return false
-        if (horizon.win_rate < 40) return false
-      }
+      if (!stats || stats.sample_count < 5 || !horizon) return false
+      if (horizon.avg < 0) return false
+      if (horizon.win_rate < 40) return false
       return true
     }).slice(0, 6)
   }, [indicators, fundamentals, patternStats])

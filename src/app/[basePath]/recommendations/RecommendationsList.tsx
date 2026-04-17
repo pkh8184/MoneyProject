@@ -179,8 +179,10 @@ export default function RecommendationsList({ basePath }: Props) {
         row.expectedWinRate = Math.round(prob * 100)
         row.horizonLabel = 'ML D+20'
       }
-      // 음수 기대수익은 "오늘의 추천"에서 제외
-      if (row.expectedReturn != null && row.expectedReturn < 0) continue
+      // 예측 데이터 자체가 없으면 추천에서 제외 (방향성 판별 불가)
+      if (row.expectedReturn == null) continue
+      // 음수 기대수익 제외
+      if (row.expectedReturn < 0) continue
       enriched.push(row)
     }
     enriched.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
