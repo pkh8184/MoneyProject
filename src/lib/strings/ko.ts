@@ -72,12 +72,12 @@ export const strings = {
     closeAria: '안내 닫기'
   },
   watchlist: {
-    pageTitle: '⭐ 즐겨찾기',
-    linkLabel: '즐겨찾기',
-    addAria: '즐겨찾기에 추가',
-    removeAria: '즐겨찾기에서 빼기',
+    pageTitle: '⭐ 관심 종목',
+    linkLabel: '관심 종목',
+    addAria: '관심 종목에 추가',
+    removeAria: '관심 종목에서 빼기',
     added: '추가됨',
-    empty: '즐겨찾기에 등록한 종목이 없어요. 종목 페이지에서 ☆를 눌러 추가해 보세요.',
+    empty: '관심 종목에 등록한 종목이 없어요. 종목 페이지에서 ☆를 눌러 추가해 보세요.',
     sortAddedDesc: '추가한 순서',
     sortReturnDesc: '많이 오른 순',
     sortReturnAsc: '많이 내린 순',
@@ -85,13 +85,13 @@ export const strings = {
     columnPrice: '지금 가격',
     columnChange: '어제보다',
     columnAddedAt: '추가한 날',
-    deleteConfirm: (name: string) => `${name}을(를) 즐겨찾기에서 뺄까요?`
+    deleteConfirm: (name: string) => `${name}을(를) 관심 종목에서 뺄까요?`
   },
   portfolio: {
-    pageTitle: '💼 내가 산 주식',
-    linkLabel: '내가 산 주식',
-    addButton: '＋ 산 주식 기록하기',
-    empty: '아직 기록한 주식이 없어요. ＋ 버튼으로 내가 산 주식을 기록해 보세요.',
+    pageTitle: '💼 보유한 주식',
+    linkLabel: '보유한 주식',
+    addButton: '＋ 주식 기록하기',
+    empty: '아직 기록한 주식이 없어요. ＋ 버튼으로 보유한 주식을 기록해 보세요.',
     summaryProfit: (n: number) => `지금까지 +${n.toLocaleString()}원 벌었어요 🟢`,
     summaryLoss: (n: number) => `지금까지 ${n.toLocaleString()}원 잃었어요 🔴`,
     summaryEven: '아직 크게 벌거나 잃지 않았어요',
@@ -109,7 +109,7 @@ export const strings = {
     cardFooter: '※ 수수료·세금은 빠져있어요 (참고용이에요)',
     deleteConfirm: (name: string) => `${name} 기록을 지울까요?`,
     modal: {
-      addTitle: '산 주식 기록하기',
+      addTitle: '보유 주식 기록하기',
       editTitle: '기록 수정',
       stockLabel: '어떤 주식이에요?',
       stockPlaceholder: '주식 이름이나 코드로 찾기',
@@ -123,10 +123,10 @@ export const strings = {
     }
   },
   journal: {
-    pageTitle: '📓 내 거래 일기',
-    linkLabel: '내 거래 일기',
+    pageTitle: '📓 매매일지',
+    linkLabel: '매매일지',
     addButton: '＋ 거래 기록하기',
-    empty: '아직 거래 기록이 없어요. ＋ 버튼으로 사고 판 기록을 남겨보세요.',
+    empty: '아직 매매 기록이 없어요. ＋ 버튼으로 사고 판 기록을 남겨보세요.',
     monthlyTitle: (m: string) => `📅 이번 달 (${m}) 요약`,
     monthlyTotal: (n: number) => `이번 달 거래: ${n}번`,
     monthlyBuySell: (b: number, s: number) => `산 횟수: ${b}번 / 판 횟수: ${s}번`,

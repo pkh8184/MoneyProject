@@ -153,7 +153,7 @@ export default function JournalView({ basePath: _basePath }: Props) {
       {showGuide && (
         <FirstVisitGuide
           steps={[
-            { title: '📓 내 거래 일기', body: '주식을 사고 판 기록을 남기는 곳이에요.' },
+            { title: '📓 매매일지', body: '주식을 사고 판 기록을 남기는 곳이에요.' },
             { title: '기록 방법', body: '＋ 버튼으로 거래를 기록하세요. 팔 때 "얼마 벌었는지"를 적으면 이번 달 요약에 반영돼요.' },
             { title: '활용 팁', body: '메모에 "왜 샀는지" 적어두면 나중에 돌아볼 때 도움돼요.' }
           ]}

@@ -156,8 +156,8 @@ export default function PortfolioView({ basePath: _basePath }: Props) {
       {showGuide && (
         <FirstVisitGuide
           steps={[
-            { title: '💼 내가 산 주식', body: '내가 가지고 있는 주식으로 지금까지 얼마 벌었는지/잃었는지 한눈에 보여줘요.' },
-            { title: '기록하는 방법', body: '＋ 버튼을 눌러 내가 산 주식을 기록하세요 (얼마에 샀는지, 몇 주 샀는지).' },
+            { title: '💼 보유한 주식', body: '내가 가지고 있는 주식으로 지금까지 얼마 벌었는지/잃었는지 한눈에 보여줘요.' },
+            { title: '기록하는 방법', body: '＋ 버튼을 눌러 보유한 주식을 기록하세요 (얼마에 샀는지, 몇 주 샀는지).' },
             { title: '알아두세요', body: '지금 바로의 가격이 아니라 어제 마감 가격 기준이에요.\n수수료·세금은 빠져있어요.' }
           ]}
           onDismiss={(persist) => {
