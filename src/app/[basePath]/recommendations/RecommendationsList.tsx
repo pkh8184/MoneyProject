@@ -6,11 +6,11 @@ import { allPresets } from '@/lib/presets/registry'
 import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
 import { runPreset, enrichWithMacro, enrichWithMl } from '@/lib/filter'
 import {
-  loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation
+  loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation, loadPatternStats
 } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import type {
-  IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson
+  IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson, PatternStatsJson
 } from '@/lib/types/indicators'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
 import { useMlPredictions } from '@/lib/ml/useMlPredictions'
@@ -37,6 +37,9 @@ interface AggRow {
   macroBonus?: MacroBonus
   sectorRotationBonus?: SectorRotationBonus
   mlPrediction?: MLPrediction
+  expectedReturn?: number | null
+  expectedWinRate?: number | null
+  horizonLabel?: string
 }
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
@@ -69,6 +72,7 @@ export default function RecommendationsList({ basePath }: Props) {
   const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
   const [sectors, setSectors] = useState<SectorsJson | null>(null)
   const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
+  const [patternStats, setPatternStats] = useState<PatternStatsJson | null>(null)
   const [loading, setLoading] = useState(true)
   const [minMatches, setMinMatches] = useState(2)
   const [showFilters, setShowFilters] = useState(false)
@@ -92,16 +96,18 @@ export default function RecommendationsList({ basePath }: Props) {
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund, sec, rot] = await Promise.all([
+      const [ind, fund, sec, rot, stats] = await Promise.all([
         loadIndicators(u.trade_date),
         loadFundamentals(u.trade_date),
         loadSectors(u.trade_date),
-        loadSectorRotation(u.trade_date)
+        loadSectorRotation(u.trade_date),
+        loadPatternStats(u.trade_date)
       ])
       setIndicators(ind)
       setFundamentals(fund ?? {})
       setSectors(sec)
       setRotation(rot)
+      setPatternStats(stats)
       setLoading(false)
     })
   }, [])
@@ -144,10 +150,37 @@ export default function RecommendationsList({ basePath }: Props) {
       }
     }
 
-    const all = Array.from(byCode.values())
-    all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
-    return all
-  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets, mlPreds])
+    // 매칭된 프리셋들의 과거 D+14 통계 평균 계산 (없으면 D+7 폴백)
+    const enriched: AggRow[] = []
+    for (const row of byCode.values()) {
+      const presetStats = patternStats?.by_stock_preset?.[row.code]
+      let sumAvg = 0
+      let sumWin = 0
+      let count = 0
+      let horizonLabel = 'D+14'
+      let usedFallback = false
+      for (const pid of row.matchedIds) {
+        const s = presetStats?.[pid]
+        if (!s || s.sample_count < 5) continue
+        const h = s.d14 ?? s.d7
+        if (!h) continue
+        if (!s.d14) usedFallback = true
+        sumAvg += h.avg
+        sumWin += h.win_rate
+        count++
+      }
+      if (count > 0) {
+        row.expectedReturn = sumAvg / count
+        row.expectedWinRate = sumWin / count
+        row.horizonLabel = usedFallback ? 'D+7' : 'D+14'
+      }
+      // 음수 기대수익은 "오늘의 추천"에서 제외
+      if (row.expectedReturn != null && row.expectedReturn < 0) continue
+      enriched.push(row)
+    }
+    enriched.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
+    return enriched
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets, mlPreds, patternStats])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),
@@ -202,9 +235,8 @@ export default function RecommendationsList({ basePath }: Props) {
           </header>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {filtered.slice(0, 5).map((r, idx) => {
-              const confidence = enabledPresets.length > 0
-                ? Math.round((r.matchedIds.length / enabledPresets.length) * 100)
-                : 0
+              const arrow = r.expectedReturn == null ? '⚖️' : r.expectedReturn > 0 ? '📈' : '📉'
+              const winRate = r.expectedWinRate != null ? Math.round(r.expectedWinRate) : null
               return (
                 <Link key={r.code} href={`/${basePath}/stock/${r.code}`} className="block">
                   <Card interactive padding="md" className="h-full relative">
@@ -218,10 +250,18 @@ export default function RecommendationsList({ basePath }: Props) {
                     <div className="font-bold text-lg mb-3">
                       {r.price?.toLocaleString() ?? '-'}원
                     </div>
-                    <div className="mb-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                      매칭 {r.matchedIds.length}개 · 신뢰도 {confidence}%
+                    <div className="mb-1 text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                      매칭 {r.matchedIds.length}개
                     </div>
-                    <GaugeBar value={confidence} max={100} />
+                    {r.expectedReturn != null ? (
+                      <div className="mb-2 text-xs">
+                        {arrow} {r.horizonLabel ?? 'D+14'} 예상 {r.expectedReturn > 0 ? '+' : ''}{r.expectedReturn.toFixed(2)}%
+                        {winRate != null && <> · 승률 {winRate}%</>}
+                      </div>
+                    ) : (
+                      <div className="mb-2 text-xs text-text-secondary-light dark:text-text-secondary-dark">과거 데이터 부족</div>
+                    )}
+                    <GaugeBar value={winRate ?? 0} max={100} />
                     {(r.macroBonus || r.mlPrediction) && (
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
@@ -340,9 +380,8 @@ export default function RecommendationsList({ basePath }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.slice(0, 200).map((r, idx) => {
-            const confidence = enabledPresets.length > 0
-              ? Math.round((r.matchedIds.length / enabledPresets.length) * 100)
-              : 0
+            const arrow = r.expectedReturn == null ? '⚖️' : r.expectedReturn > 0 ? '📈' : '📉'
+            const winRate = r.expectedWinRate != null ? Math.round(r.expectedWinRate) : null
             return (
               <Link key={r.code} href={`/${basePath}/stock/${r.code}`} className="block">
                 <Card interactive padding="md">
@@ -387,11 +426,18 @@ export default function RecommendationsList({ basePath }: Props) {
                   </div>
 
                   <div className="mt-4">
-                    <div className="flex items-center justify-between mb-1 text-sm">
-                      <span className="text-text-secondary-light dark:text-text-secondary-dark">신뢰도</span>
-                      <span className="font-bold">{confidence}%</span>
-                    </div>
-                    <GaugeBar value={confidence} max={100} />
+                    {r.expectedReturn != null ? (
+                      <div className="flex items-center justify-between mb-1 text-sm">
+                        <span>{arrow} {r.horizonLabel ?? 'D+14'} 예상 {r.expectedReturn > 0 ? '+' : ''}{r.expectedReturn.toFixed(2)}%</span>
+                        <span className="font-bold">승률 {winRate ?? 0}%</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between mb-1 text-sm">
+                        <span className="text-text-secondary-light dark:text-text-secondary-dark">과거 데이터 부족</span>
+                        <span className="text-text-secondary-light dark:text-text-secondary-dark">-</span>
+                      </div>
+                    )}
+                    <GaugeBar value={winRate ?? 0} max={100} />
                   </div>
                 </Card>
               </Link>

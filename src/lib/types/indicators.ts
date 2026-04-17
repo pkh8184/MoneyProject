@@ -101,6 +101,7 @@ export interface PresetPatternStats {
   d1: ReturnStat
   d3: ReturnStat
   d7: ReturnStat
+  d14?: ReturnStat
 }
 
 export interface PatternStatsJson {

@@ -27,18 +27,23 @@ export default function StockCardWithPrediction({ result, tagLabel, stats, baseP
         <div className="text-2xl font-bold mb-3">
           {result.price?.toLocaleString() ?? '-'}원
         </div>
-        {stats && stats.sample_count >= 5 && (
-          <div className="pt-3 border-t border-border-light/50 dark:border-border-dark/50">
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span>D+7 예상 {stats.d7.avg > 0 ? '+' : ''}{stats.d7.avg}%</span>
-              <span className="text-text-secondary-light dark:text-text-secondary-dark">신뢰 {stats.d7.win_rate}%</span>
+        {stats && stats.sample_count >= 5 && (() => {
+          const h = stats.d14 ?? stats.d7
+          const label = stats.d14 ? 'D+14' : 'D+7'
+          const arrow = h.avg > 0 ? '📈' : h.avg < 0 ? '📉' : '⚖️'
+          return (
+            <div className="pt-3 border-t border-border-light/50 dark:border-border-dark/50">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span>{arrow} {label} 예상 {h.avg > 0 ? '+' : ''}{h.avg}%</span>
+                <span className="text-text-secondary-light dark:text-text-secondary-dark">신뢰 {h.win_rate}%</span>
+              </div>
+              <GaugeBar value={h.win_rate} max={100} />
+              <div className="mt-1 text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                과거 {stats.sample_count}건 · 참고용
+              </div>
             </div>
-            <GaugeBar value={stats.d7.win_rate} max={100} />
-            <div className="mt-1 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-              과거 {stats.sample_count}건 · 참고용
-            </div>
-          </div>
-        )}
+          )
+        })()}
       </Card>
     </Link>
   )
