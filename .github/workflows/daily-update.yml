@@ -109,8 +109,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout --orphan data-tmp
           git reset --hard
-          git checkout ${{ github.sha }} -- public/data/
-          git add public/data/
+          git checkout ${{ github.sha }} -- public/data/ vercel.json
+          git add public/data/ vercel.json
           git commit -m "data: $(date -u +%Y-%m-%d) KST $(TZ=Asia/Seoul date +%H:%M)"
           git push -f origin data-tmp:data
 

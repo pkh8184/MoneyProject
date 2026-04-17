@@ -41,6 +41,7 @@ jobs:
           mkdir -p public/models public/data
           cp -r ${{ github.workspace }}/public/models/* public/models/
           cp ${{ github.workspace }}/public/data/ml_metrics.json public/data/
+          cp ${{ github.workspace }}/vercel.json vercel.json
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
           git add -A
