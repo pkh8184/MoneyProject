@@ -242,7 +242,14 @@ export const strings = {
     roleLoss: '(피해)',
     totalLine: '합계',
     goToSettings: '🌍 시장 환경 설정 바로가기 →',
-    weightLabel: (w: number) => `강도: ±${w}`
+    weightLabel: (w: number) => `강도: ±${w}`,
+    confidenceHigh: '★★★★★',
+    confidenceMedium: '★★★☆☆',
+    confidenceLow: '★☆☆☆☆',
+    backtestSummary: (effect: number, sample: number) =>
+      `과거 평균 수혜 D+5 ${effect > 0 ? '+' : ''}${effect.toFixed(2)}% (샘플 ${sample}일)`,
+    stockResponse: (effect: number, sample: number) =>
+      `📊 이 종목은 과거 평균 D+5 ${effect > 0 ? '+' : ''}${effect.toFixed(2)}% (${sample}일)`
   },
   autoDetect: {
     title: (n: number) => `🤖 자동 감지됨 (${n}개)`,

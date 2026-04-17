@@ -50,6 +50,18 @@ jobs:
           python fetch_macro_indicators.py
         continue-on-error: true
 
+      - name: Fetch historical macro
+        run: |
+          cd scripts
+          python fetch_historical_macro.py
+        continue-on-error: true
+
+      - name: Run factor backtest
+        run: |
+          cd scripts
+          python backtest_factors.py
+        continue-on-error: true
+
       - name: Calculate pattern stats
         run: |
           cd scripts

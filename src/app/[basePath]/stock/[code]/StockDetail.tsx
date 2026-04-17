@@ -99,7 +99,7 @@ export default function StockDetail({ code, basePath }: Props) {
       </section>
       <BowlPhaseIndicator stock={stock} />
       <BowlVolumePanel stock={stock} fundamental={fundamental} />
-      <MacroDetailPanel stockName={stock.name} themes={sectors?.[code]?.themes} basePath={basePath} />
+      <MacroDetailPanel stockName={stock.name} themes={sectors?.[code]?.themes} basePath={basePath} code={code} />
     </div>
   )
 }

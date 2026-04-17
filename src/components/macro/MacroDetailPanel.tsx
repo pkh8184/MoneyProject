@@ -1,18 +1,31 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
 import { computeMacroBonus } from '@/lib/macro/scoring'
 import { strings } from '@/lib/strings/ko'
+import { loadStockMacroResponse, loadUpdatedAt } from '@/lib/dataLoader'
+import type { StockMacroResponseJson } from '@/lib/types/indicators'
 
 interface Props {
   stockName: string
   themes: string[] | undefined
   basePath: string
+  code?: string
 }
 
-export default function MacroDetailPanel({ stockName, themes, basePath }: Props) {
+export default function MacroDetailPanel({ stockName, themes, basePath, code }: Props) {
   const { activeFactors } = useMacroFactors()
+  const [responseDb, setResponseDb] = useState<StockMacroResponseJson | null>(null)
+
+  useEffect(() => {
+    loadUpdatedAt().then(async (u) => {
+      if (!u) return
+      const r = await loadStockMacroResponse(u.trade_date)
+      setResponseDb(r)
+    })
+  }, [])
 
   if (activeFactors.length === 0) return null
 
@@ -27,20 +40,31 @@ export default function MacroDetailPanel({ stockName, themes, basePath }: Props)
 
       {bonus.detail.length > 0 ? (
         <div className="space-y-2">
-          {bonus.detail.map((d) => (
-            <div
-              key={d.factorId}
-              className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary-light dark:bg-bg-secondary-dark"
-            >
-              <span className="text-sm">
-                {d.role === 'benefit' ? '🟢' : '🔴'} {d.factorName}
-              </span>
-              <span className={`font-bold ${d.delta > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {d.delta > 0 ? '+' : ''}
-                {d.delta} {d.role === 'benefit' ? strings.macro.roleBenefit : strings.macro.roleLoss}
-              </span>
-            </div>
-          ))}
+          {bonus.detail.map((d) => {
+            const stockResp = code ? responseDb?.stocks[code]?.[d.factorId] : null
+            return (
+              <div
+                key={d.factorId}
+                className="p-2 rounded-lg bg-bg-secondary-light dark:bg-bg-secondary-dark"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">
+                    {d.role === 'benefit' ? '🟢' : '🔴'} {d.factorName}
+                  </span>
+                  <span className={`font-bold ${d.delta > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {d.delta > 0 ? '+' : ''}
+                    {d.delta} {d.role === 'benefit' ? strings.macro.roleBenefit : strings.macro.roleLoss}
+                  </span>
+                </div>
+                {stockResp && stockResp.avg_return_d5 != null ? (
+                  <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-1">
+                    📊 이 종목은 과거 평균 D+5 {stockResp.avg_return_d5 > 0 ? '+' : ''}
+                    {stockResp.avg_return_d5.toFixed(2)}% ({stockResp.sample_days}일)
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-light dark:border-border-dark">
             <span className="font-bold">{strings.macro.totalLine}</span>
             <span

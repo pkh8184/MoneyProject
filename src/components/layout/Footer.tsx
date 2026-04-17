@@ -14,6 +14,9 @@ export default function Footer() {
           <Link href={`/${basePath}/glossary`} className="underline">
             {strings.footer.glossaryLinkLabel}
           </Link>
+          <Link href={`/${basePath}/environment/backtest`} className="underline ml-3">
+            📊 백테스트 결과
+          </Link>
         </div>
         {strings.legal.disclaimer}
       </div>

@@ -1,7 +1,8 @@
 import { get, set } from 'idb-keyval'
 import type {
   UpdatedAtJson, IndicatorsJson, FundamentalsJson,
-  SectorsJson, PatternStatsJson, StocksJson, MacroIndicatorsJson
+  SectorsJson, PatternStatsJson, StocksJson, MacroIndicatorsJson,
+  FactorBacktestJson, StockMacroResponseJson
 } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
@@ -132,6 +133,37 @@ export async function loadMacroIndicators(tradeDate: string): Promise<MacroIndic
     if (!res.ok) return null
     const data = (await res.json()) as MacroIndicatorsJson
     await setCached(IDB_MACRO_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_FACTOR_BT_KEY = 'factor-backtest-cache-v1'
+const IDB_STOCK_RESP_KEY = 'stock-macro-response-cache-v1'
+
+export async function loadFactorBacktest(tradeDate: string): Promise<FactorBacktestJson | null> {
+  const cached = await getCached<FactorBacktestJson>(IDB_FACTOR_BT_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/factor_backtest_results.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as FactorBacktestJson
+    await setCached(IDB_FACTOR_BT_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+export async function loadStockMacroResponse(tradeDate: string): Promise<StockMacroResponseJson | null> {
+  const cached = await getCached<StockMacroResponseJson>(IDB_STOCK_RESP_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/stock_macro_response.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as StockMacroResponseJson
+    await setCached(IDB_STOCK_RESP_KEY, tradeDate, data)
     return data
   } catch {
     return null

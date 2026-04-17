@@ -1,12 +1,14 @@
 'use client'
 import { strings } from '@/lib/strings/ko'
 import type { MacroFactor } from '@/lib/macro/types'
+import type { FactorBacktestResult } from '@/lib/types/indicators'
 
 interface Props {
   factor: MacroFactor
   active: boolean
   autoDetected?: boolean
   onToggle: () => void
+  backtestResult?: FactorBacktestResult
 }
 
 function formatMatch(m: { themes?: string[]; nameKeywords?: string[] }): string {
@@ -16,7 +18,15 @@ function formatMatch(m: { themes?: string[]; nameKeywords?: string[] }): string 
   return parts.join(', ')
 }
 
-export default function FactorCard({ factor, active, autoDetected, onToggle }: Props) {
+function confidenceStars(conf: 'low' | 'medium' | 'high'): string {
+  switch (conf) {
+    case 'high': return '★★★★★'
+    case 'medium': return '★★★☆☆'
+    case 'low': return '★☆☆☆☆'
+  }
+}
+
+export default function FactorCard({ factor, active, autoDetected, onToggle, backtestResult }: Props) {
   const benefits = formatMatch(factor.beneficiaries)
   const losers = formatMatch(factor.losers)
 
@@ -64,6 +74,16 @@ export default function FactorCard({ factor, active, autoDetected, onToggle }: P
             <p className="text-sm">
               <span className="text-red-600">{strings.environment.loserLabel}</span>:{' '}
               {losers}
+            </p>
+          )}
+          {backtestResult && backtestResult.by_hold?.d5 && (
+            <p className="text-xs mt-2 text-text-secondary-light dark:text-text-secondary-dark">
+              📊 과거 5년 신뢰도 {confidenceStars(backtestResult.confidence)}
+              {backtestResult.by_hold.d5.effect_benefit != null && (
+                <> · 수혜 평균 D+5 {backtestResult.by_hold.d5.effect_benefit > 0 ? '+' : ''}
+                {backtestResult.by_hold.d5.effect_benefit.toFixed(2)}%</>
+              )}
+              {' · 샘플 '}{backtestResult.sample_dates}일
             </p>
           )}
         </div>
