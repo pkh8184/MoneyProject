@@ -7,9 +7,9 @@ import FirstVisitGuide from '@/components/common/FirstVisitGuide'
 import FactorCard from './FactorCard'
 import AutoDetectCard from './AutoDetectCard'
 import { strings } from '@/lib/strings/ko'
-import { loadFundamentals, loadMacroIndicators, loadUpdatedAt } from '@/lib/dataLoader'
+import { loadFundamentals, loadMacroIndicators, loadUpdatedAt, loadFactorBacktest } from '@/lib/dataLoader'
 import type { FactorCategory, MacroFactor } from '@/lib/macro/types'
-import type { FundamentalsJson, MacroIndicatorsJson } from '@/lib/types/indicators'
+import type { FundamentalsJson, MacroIndicatorsJson, FactorBacktestJson } from '@/lib/types/indicators'
 
 const CATEGORY_ORDER: FactorCategory[] = [
   'geopolitics',
@@ -23,16 +23,19 @@ const CATEGORY_ORDER: FactorCategory[] = [
 export default function EnvironmentView() {
   const [fundamentals, setFundamentals] = useState<FundamentalsJson | null>(null)
   const [indicators, setIndicators] = useState<MacroIndicatorsJson | null>(null)
+  const [backtest, setBacktest] = useState<FactorBacktestJson | null>(null)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) return
-      const [fund, ind] = await Promise.all([
+      const [fund, ind, bt] = await Promise.all([
         loadFundamentals(u.trade_date),
-        loadMacroIndicators(u.trade_date)
+        loadMacroIndicators(u.trade_date),
+        loadFactorBacktest(u.trade_date)
       ])
       setFundamentals(fund)
       setIndicators(ind)
+      setBacktest(bt)
     })
   }, [])
 
@@ -102,6 +105,7 @@ export default function EnvironmentView() {
                   active={isActive(f.id)}
                   autoDetected={isAutoDetected(f.id)}
                   onToggle={() => toggle(f.id)}
+                  backtestResult={backtest?.factors[f.id]}
                 />
               ))}
             </div>

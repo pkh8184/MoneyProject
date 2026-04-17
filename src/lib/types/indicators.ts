@@ -123,3 +123,42 @@ export interface MacroIndicatorsJson {
   oil_wti: MacroIndicator | null
   kospi: MacroIndicator | null
 }
+
+export interface FactorBacktestHoldStat {
+  benefit_avg: number | null
+  loss_avg: number | null
+  neutral_avg: number | null
+  effect_benefit: number | null
+  effect_loss: number | null
+  sample_benefit: number
+  sample_loss: number
+  sample_neutral: number
+}
+
+export interface FactorBacktestResult {
+  factor_id: string
+  sample_dates: number
+  confidence: 'low' | 'medium' | 'high'
+  recommended_weight: number
+  by_hold: {
+    d1: FactorBacktestHoldStat
+    d5: FactorBacktestHoldStat
+    d20: FactorBacktestHoldStat
+  }
+}
+
+export interface FactorBacktestJson {
+  updated_at: string
+  factors: Record<string, FactorBacktestResult>
+}
+
+export interface StockFactorResponse {
+  avg_return_d5: number | null
+  sample_days: number
+  confidence: 'low' | 'medium' | 'high'
+}
+
+export interface StockMacroResponseJson {
+  updated_at: string
+  stocks: Record<string, Record<string, StockFactorResponse>>
+}
