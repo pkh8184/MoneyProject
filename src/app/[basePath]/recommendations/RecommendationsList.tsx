@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { allPresets } from '@/lib/presets/registry'
 import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
-import { runPreset, enrichWithMacro } from '@/lib/filter'
+import { runPreset, enrichWithMacro, enrichWithMl } from '@/lib/filter'
 import {
   loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation
 } from '@/lib/dataLoader'
@@ -13,6 +13,7 @@ import type {
   IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson
 } from '@/lib/types/indicators'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { useMlPredictions } from '@/lib/ml/useMlPredictions'
 import { computeMacroBonus } from '@/lib/macro/scoring'
 import { computeSectorRotationBonus, type SectorRotationBonus } from '@/lib/macro/sectorRotation'
 import type { MacroBonus } from '@/lib/macro/types'
@@ -69,6 +70,7 @@ export default function RecommendationsList({ basePath }: Props) {
   const [minMatches, setMinMatches] = useState(2)
   const [showFilters, setShowFilters] = useState(false)
   const { activeFactors } = useMacroFactors()
+  const mlPreds = useMlPredictions()
 
   const allIds = useMemo(() => allPresets.map((p) => p.id), [])
   const [enabledIds, setEnabledIds] = useState<Set<string>>(
@@ -112,7 +114,7 @@ export default function RecommendationsList({ basePath }: Props) {
 
     for (const preset of enabledPresets) {
       const raw = runPreset(preset, indicators, fundamentals, {})
-      const results = enrichWithMacro(raw, sectors, activeFactors, rotation)
+      const results = enrichWithMl(enrichWithMacro(raw, sectors, activeFactors, rotation), mlPreds)
       for (const r of results) {
         const existing = byCode.get(r.code)
         if (existing) {
@@ -141,7 +143,7 @@ export default function RecommendationsList({ basePath }: Props) {
     const all = Array.from(byCode.values())
     all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
     return all
-  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets])
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, enabledPresets, mlPreds])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),

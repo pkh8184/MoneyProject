@@ -187,3 +187,34 @@ export interface NewsSignalsJson {
   total_articles: number
   signals: Record<string, NewsSignal>
 }
+
+export interface MLTopFeature {
+  name: string
+  value: number
+}
+
+export interface MLPrediction {
+  probability: number
+  ml_score: number
+  top_features: MLTopFeature[]
+}
+
+export interface MLPredictionsJson {
+  updated_at: string
+  model_version: string
+  auc_holdout: number | null
+  predictions: Record<string, MLPrediction>
+}
+
+export interface MLMetricsJson {
+  model_version: string
+  trained_at: string
+  n_samples: number
+  positive_rate: number
+  auc_val: number
+  auc_test: number
+  precision_top10: number
+  lift_top10: number
+  features: string[]
+  feature_importance_top15: { name: string; importance: number }[]
+}
