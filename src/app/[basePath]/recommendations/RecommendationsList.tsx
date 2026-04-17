@@ -17,7 +17,9 @@ import { useMlPredictions } from '@/lib/ml/useMlPredictions'
 import { computeMacroBonus } from '@/lib/macro/scoring'
 import { computeSectorRotationBonus, type SectorRotationBonus } from '@/lib/macro/sectorRotation'
 import type { MacroBonus } from '@/lib/macro/types'
+import type { MLPrediction } from '@/lib/types/indicators'
 import MacroBadge from '@/components/macro/MacroBadge'
+import MLScoreBadge from '@/components/ml/MLScoreBadge'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Pill from '@/components/ui/Pill'
@@ -34,6 +36,7 @@ interface AggRow {
   matchedNames: string[]
   macroBonus?: MacroBonus
   sectorRotationBonus?: SectorRotationBonus
+  mlPrediction?: MLPrediction
 }
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
@@ -134,7 +137,8 @@ export default function RecommendationsList({ basePath }: Props) {
               : undefined,
             sectorRotationBonus: rotation
               ? computeSectorRotationBonus(themes, rotation)
-              : undefined
+              : undefined,
+            mlPrediction: r.mlPrediction
           })
         }
       }
@@ -218,14 +222,15 @@ export default function RecommendationsList({ basePath }: Props) {
                       매칭 {r.matchedIds.length}개 · 신뢰도 {confidence}%
                     </div>
                     <GaugeBar value={confidence} max={100} />
-                    {r.macroBonus && (
-                      <div className="mt-2">
-                        <MacroBadge bonus={r.macroBonus} />
+                    {(r.macroBonus || r.mlPrediction) && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
                         {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
-                          <span className="text-xs ml-2">
+                          <span className="text-xs">
                             {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                           </span>
                         )}
+                        {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                       </div>
                     )}
                   </Card>
@@ -356,14 +361,15 @@ export default function RecommendationsList({ basePath }: Props) {
                       <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                         매칭 {r.matchedIds.length}개
                       </div>
-                      {r.macroBonus && (
-                        <div className="mt-1 flex justify-end items-center gap-1">
-                          <MacroBadge bonus={r.macroBonus} />
+                      {(r.macroBonus || r.mlPrediction) && (
+                        <div className="mt-1 flex justify-end items-center gap-1 flex-wrap">
+                          {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
                           {r.sectorRotationBonus && r.sectorRotationBonus.sectorRotationDelta !== 0 && (
                             <span className="text-xs">
                               {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                             </span>
                           )}
+                          {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                         </div>
                       )}
                     </div>

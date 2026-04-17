@@ -5,6 +5,7 @@ import type { FilterResult } from '@/lib/filter'
 import { strings } from '@/lib/strings/ko'
 import Card from '@/components/ui/Card'
 import MacroBadge from '@/components/macro/MacroBadge'
+import MLScoreBadge from '@/components/ml/MLScoreBadge'
 
 interface Props {
   results: FilterResult[]
@@ -54,6 +55,7 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
                         {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                       </span>
                     )}
+                    {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                   </span>
                 </td>
                 <td className="py-3 pr-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">{r.market}</td>
@@ -81,6 +83,7 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
                         {strings.macro.rotationBadge(r.sectorRotationBonus.sectorRotationDelta)}
                       </span>
                     )}
+                    {r.mlPrediction && <MLScoreBadge prediction={r.mlPrediction} />}
                   </div>
                   <div className="font-mono text-sm text-text-secondary-light dark:text-text-secondary-dark">
                     {r.code} · {r.market}

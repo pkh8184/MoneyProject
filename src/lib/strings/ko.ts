@@ -207,6 +207,18 @@ export const strings = {
     importSuccess: '가져오기 완료',
     importInvalid: '유효하지 않은 파일입니다'
   },
+  ml: {
+    badgeLabel: (score: number) => `🤖 +${score}`,
+    panelTitle: '🤖 ML 예측',
+    probabilityLabel: (pct: number) => `D+20 KOSPI 초과 확률: ${(pct * 100).toFixed(1)}%`,
+    scoreLabel: (score: number) => `예상 점수: +${score} / 20`,
+    topFeaturesTitle: '📊 예측 근거 (상위 3 피처)',
+    featureRow: (name: string, value: number) => `• ${name} = ${value.toFixed(2)}`,
+    modelInfo: (version: string, auc: number) => `모델 ${version} · AUC ${auc.toFixed(2)}`,
+    disclaimer: '※ 과거 5년 패턴 기반. 미래 수익 보장 아님.',
+    metricsPageTitle: '🤖 ML 모델 지표',
+    metricsUpdated: (iso: string) => `훈련: ${new Date(iso).toLocaleString('ko-KR')}`
+  },
   environment: {
     pageTitle: '🌍 시장 환경',
     linkLabel: '시장 환경',

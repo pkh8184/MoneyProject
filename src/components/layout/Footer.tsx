@@ -17,6 +17,9 @@ export default function Footer() {
           <Link href={`/${basePath}/environment/backtest`} className="underline ml-3">
             📊 백테스트 결과
           </Link>
+          <Link href={`/${basePath}/environment/ml-metrics`} className="underline ml-3">
+            🤖 ML 지표
+          </Link>
         </div>
         {strings.legal.disclaimer}
       </div>
