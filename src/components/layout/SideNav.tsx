@@ -84,6 +84,9 @@ export default function SideNav() {
               <Link href={`/${basePath}/beginner`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/beginner'))}>
                 🌱 <span>{strings.beginner.linkLabel}</span>
               </Link>
+              <Link href={`/${basePath}/environment`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/environment'))}>
+                🌍 <span>{strings.environment.linkLabel}</span>
+              </Link>
               <Link href={`/${basePath}/watchlist`} onClick={() => setOpen(false)} className={linkClass(!!isActive('/watchlist'))}>
                 ⭐ <span>{strings.watchlist.linkLabel}</span>
               </Link>

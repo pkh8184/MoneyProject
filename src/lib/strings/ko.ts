@@ -207,6 +207,42 @@ export const strings = {
     importSuccess: '가져오기 완료',
     importInvalid: '유효하지 않은 파일입니다'
   },
+  environment: {
+    pageTitle: '🌍 시장 환경',
+    linkLabel: '시장 환경',
+    subtitle: '현재 상황에 맞는 팩터를 켜두면 추천 점수에 반영돼요',
+    activeCount: (n: number, total: number) => `현재 활성: ${n} / ${total}개`,
+    clearAll: '모두 끄기',
+    presetSoon: '추천 세팅 (준비 중)',
+    categoryTitle: {
+      geopolitics: 'A. 지정학',
+      rates: 'B. 금리·환율',
+      commodity: 'C. 원자재·에너지',
+      domestic: 'D. 국내 경제',
+      theme: 'E. 산업 테마',
+      sentiment: 'F. 시장 심리'
+    },
+    categoryCount: (active: number, total: number) => `(${active} / ${total})`,
+    beneficiaryLabel: '👍 수혜',
+    loserLabel: '👎 피해',
+    guideStep1Title: '🌍 시장 환경이란?',
+    guideStep1Body: '"지금 세계에서 벌어지는 일"에 따라 유리한 종목이 달라져요.',
+    guideStep2Title: '사용 방법',
+    guideStep2Body: '현재 상황에 맞는 팩터를 켜두면 추천 점수에 반영돼요.',
+    guideStep3Title: '팁',
+    guideStep3Body: '너무 많이 켜면 효과가 흐려져요. 정말 중요한 것 3~5개만 켜두세요.'
+  },
+  macro: {
+    badgeLabel: (total: number) => `🌍 환경 ${total > 0 ? '+' : ''}${total}`,
+    noActive: '활성 팩터가 없어요',
+    detailTitle: '🌍 현재 환경에서의 위치',
+    matchSummary: (matched: number, total: number) =>
+      `활성 팩터 ${total}개 중 ${matched}개 매칭`,
+    roleBenefit: '(수혜)',
+    roleLoss: '(피해)',
+    totalLine: '합계',
+    goToSettings: '🌍 시장 환경 설정 바로가기 →'
+  },
   bowlPhase: {
     title: '🍚 밥그릇 진행 단계',
     subtitle: '4단계 중 현재 위치',

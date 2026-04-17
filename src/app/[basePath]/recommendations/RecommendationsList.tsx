@@ -4,14 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { allPresets } from '@/lib/presets/registry'
 import { groupByCategory, CATEGORY_META } from '@/lib/presets/categories'
-import { runPreset } from '@/lib/filter'
+import { runPreset, enrichWithMacro } from '@/lib/filter'
 import {
-  loadIndicators, loadFundamentals, loadUpdatedAt
+  loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt
 } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import type {
-  IndicatorsJson, FundamentalsJson
+  IndicatorsJson, FundamentalsJson, SectorsJson
 } from '@/lib/types/indicators'
+import { useMacroFactors } from '@/lib/macro/useMacroFactors'
+import { computeMacroBonus } from '@/lib/macro/scoring'
+import type { MacroBonus } from '@/lib/macro/types'
+import MacroBadge from '@/components/macro/MacroBadge'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Pill from '@/components/ui/Pill'
@@ -26,6 +30,7 @@ interface AggRow {
   price: number | null
   matchedIds: string[]
   matchedNames: string[]
+  macroBonus?: MacroBonus
 }
 
 const LS_KEY = 'recommendations-enabled-presets-v1'
@@ -56,9 +61,11 @@ function loadEnabledFromStorage(fallback: string[]): Set<string> {
 export default function RecommendationsList({ basePath }: Props) {
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson>({})
+  const [sectors, setSectors] = useState<SectorsJson | null>(null)
   const [loading, setLoading] = useState(true)
   const [minMatches, setMinMatches] = useState(2)
   const [showFilters, setShowFilters] = useState(false)
+  const { activeFactors } = useMacroFactors()
 
   const allIds = useMemo(() => allPresets.map((p) => p.id), [])
   const [enabledIds, setEnabledIds] = useState<Set<string>>(
@@ -77,12 +84,14 @@ export default function RecommendationsList({ basePath }: Props) {
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund] = await Promise.all([
+      const [ind, fund, sec] = await Promise.all([
         loadIndicators(u.trade_date),
-        loadFundamentals(u.trade_date)
+        loadFundamentals(u.trade_date),
+        loadSectors(u.trade_date)
       ])
       setIndicators(ind)
       setFundamentals(fund ?? {})
+      setSectors(sec)
       setLoading(false)
     })
   }, [])
@@ -97,7 +106,8 @@ export default function RecommendationsList({ basePath }: Props) {
     const byCode = new Map<string, AggRow>()
 
     for (const preset of enabledPresets) {
-      const results = runPreset(preset, indicators, fundamentals, {})
+      const raw = runPreset(preset, indicators, fundamentals, {})
+      const results = enrichWithMacro(raw, sectors, activeFactors)
       for (const r of results) {
         const existing = byCode.get(r.code)
         if (existing) {
@@ -110,7 +120,10 @@ export default function RecommendationsList({ basePath }: Props) {
             market: r.market,
             price: r.price,
             matchedIds: [preset.id],
-            matchedNames: [preset.name]
+            matchedNames: [preset.name],
+            macroBonus: activeFactors.length > 0
+              ? computeMacroBonus(r.name, sectors?.[r.code]?.themes, activeFactors)
+              : undefined
           })
         }
       }
@@ -119,7 +132,7 @@ export default function RecommendationsList({ basePath }: Props) {
     const all = Array.from(byCode.values())
     all.sort((a, b) => b.matchedIds.length - a.matchedIds.length)
     return all
-  }, [indicators, fundamentals, enabledPresets])
+  }, [indicators, fundamentals, sectors, activeFactors, enabledPresets])
 
   const filtered = useMemo(
     () => rows.filter((r) => r.matchedIds.length >= minMatches),
@@ -194,6 +207,11 @@ export default function RecommendationsList({ basePath }: Props) {
                       매칭 {r.matchedIds.length}개 · 신뢰도 {confidence}%
                     </div>
                     <GaugeBar value={confidence} max={100} />
+                    {r.macroBonus && (
+                      <div className="mt-2">
+                        <MacroBadge bonus={r.macroBonus} />
+                      </div>
+                    )}
                   </Card>
                 </Link>
               )
@@ -322,6 +340,11 @@ export default function RecommendationsList({ basePath }: Props) {
                       <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                         매칭 {r.matchedIds.length}개
                       </div>
+                      {r.macroBonus && (
+                        <div className="mt-1 flex justify-end">
+                          <MacroBadge bonus={r.macroBonus} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
