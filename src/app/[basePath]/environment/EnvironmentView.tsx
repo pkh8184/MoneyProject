@@ -6,10 +6,11 @@ import { useFirstVisit } from '@/lib/storage/useFirstVisit'
 import FirstVisitGuide from '@/components/common/FirstVisitGuide'
 import FactorCard from './FactorCard'
 import AutoDetectCard from './AutoDetectCard'
+import SectorRotationCard from '@/components/macro/SectorRotationCard'
 import { strings } from '@/lib/strings/ko'
-import { loadFundamentals, loadMacroIndicators, loadUpdatedAt, loadFactorBacktest } from '@/lib/dataLoader'
+import { loadFundamentals, loadMacroIndicators, loadUpdatedAt, loadFactorBacktest, loadSectorRotation } from '@/lib/dataLoader'
 import type { FactorCategory, MacroFactor } from '@/lib/macro/types'
-import type { FundamentalsJson, MacroIndicatorsJson, FactorBacktestJson } from '@/lib/types/indicators'
+import type { FundamentalsJson, MacroIndicatorsJson, FactorBacktestJson, SectorRotationJson } from '@/lib/types/indicators'
 
 const CATEGORY_ORDER: FactorCategory[] = [
   'geopolitics',
@@ -24,23 +25,26 @@ export default function EnvironmentView() {
   const [fundamentals, setFundamentals] = useState<FundamentalsJson | null>(null)
   const [indicators, setIndicators] = useState<MacroIndicatorsJson | null>(null)
   const [backtest, setBacktest] = useState<FactorBacktestJson | null>(null)
+  const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) return
-      const [fund, ind, bt] = await Promise.all([
+      const [fund, ind, bt, rot] = await Promise.all([
         loadFundamentals(u.trade_date),
         loadMacroIndicators(u.trade_date),
-        loadFactorBacktest(u.trade_date)
+        loadFactorBacktest(u.trade_date),
+        loadSectorRotation(u.trade_date)
       ])
       setFundamentals(fund)
       setIndicators(ind)
       setBacktest(bt)
+      setRotation(rot)
     })
   }, [])
 
-  const autoDetectedIds = useMacroAutoDetect(fundamentals)
-  const { all, activeIds, toggle, clearAll, isActive, isAutoDetected, applyAllAutoDetected } =
+  const { detectedIds: autoDetectedIds, news } = useMacroAutoDetect(fundamentals)
+  const { all, activeIds, activatedAt, toggle, clearAll, isActive, isAutoDetected, applyAllAutoDetected } =
     useMacroFactors('anon', autoDetectedIds)
   const [firstVisit, markVisited] = useFirstVisit('environment')
   const [showGuide, setShowGuide] = useState(false)
@@ -71,7 +75,10 @@ export default function EnvironmentView() {
         onToggle={toggle}
         onApplyAll={applyAllAutoDetected}
         updatedAt={indicators?.updated_at ?? null}
+        news={news}
       />
+
+      <SectorRotationCard rotation={rotation} />
 
       <div className="mb-6 p-4 rounded-2xl bg-bg-secondary-light dark:bg-bg-secondary-dark flex items-center justify-between flex-wrap gap-2">
         <span className="font-bold">
@@ -106,6 +113,7 @@ export default function EnvironmentView() {
                   autoDetected={isAutoDetected(f.id)}
                   onToggle={() => toggle(f.id)}
                   backtestResult={backtest?.factors[f.id]}
+                  activatedAt={activatedAt[f.id]}
                 />
               ))}
             </div>

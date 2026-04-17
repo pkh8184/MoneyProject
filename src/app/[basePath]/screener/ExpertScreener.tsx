@@ -9,8 +9,8 @@ import PresetDescription from '@/components/screener/PresetDescription'
 import Card from '@/components/ui/Card'
 import { getExpertPresets, getPresetById } from '@/lib/presets/registry'
 import { runPreset, enrichWithMacro, type FilterResult } from '@/lib/filter'
-import { loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt } from '@/lib/dataLoader'
-import type { IndicatorsJson, FundamentalsJson, SectorsJson } from '@/lib/types/indicators'
+import { loadIndicators, loadFundamentals, loadSectors, loadUpdatedAt, loadSectorRotation } from '@/lib/dataLoader'
+import type { IndicatorsJson, FundamentalsJson, SectorsJson, SectorRotationJson } from '@/lib/types/indicators'
 import type { PresetParams } from '@/lib/presets/types'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
 
@@ -20,6 +20,7 @@ export default function ExpertScreener() {
   const [indicators, setIndicators] = useState<IndicatorsJson | null>(null)
   const [fundamentals, setFundamentals] = useState<FundamentalsJson | null>(null)
   const [sectors, setSectors] = useState<SectorsJson | null>(null)
+  const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [paramsByPreset, setParamsByPreset] = useState<Record<string, PresetParams>>({})
@@ -31,14 +32,16 @@ export default function ExpertScreener() {
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund, sec] = await Promise.all([
+      const [ind, fund, sec, rot] = await Promise.all([
         loadIndicators(u.trade_date),
         loadFundamentals(u.trade_date),
-        loadSectors(u.trade_date)
+        loadSectors(u.trade_date),
+        loadSectorRotation(u.trade_date)
       ])
       setIndicators(ind)
       setFundamentals(fund ?? {})
       setSectors(sec)
+      setRotation(rot)
       setLoading(false)
       if (presets.length > 0) setActiveId(presets[0].id)
     })
@@ -56,8 +59,8 @@ export default function ExpertScreener() {
     }
     const params = paramsByPreset[currentPreset.id] ?? {}
     const out = runPreset(currentPreset, indicators, fundamentals, params)
-    setResults(enrichWithMacro(out, sectors, activeFactors))
-  }, [indicators, fundamentals, sectors, activeFactors, currentPreset, paramsByPreset])
+    setResults(enrichWithMacro(out, sectors, activeFactors, rotation))
+  }, [indicators, fundamentals, sectors, rotation, activeFactors, currentPreset, paramsByPreset])
 
   return (
     <div className="flex flex-col md:flex-row gap-4">

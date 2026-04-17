@@ -1,7 +1,8 @@
 import type { Preset, PresetParams } from './presets/types'
-import type { IndicatorsJson, FundamentalsJson, SectorsJson, StockIndicators } from '@/lib/types/indicators'
+import type { IndicatorsJson, FundamentalsJson, SectorsJson, StockIndicators, SectorRotationJson } from '@/lib/types/indicators'
 import type { MacroFactor, MacroBonus } from './macro/types'
 import { computeMacroBonus } from './macro/scoring'
+import { computeSectorRotationBonus, type SectorRotationBonus } from './macro/sectorRotation'
 
 export interface FilterResult {
   code: string
@@ -12,6 +13,7 @@ export interface FilterResult {
   rsi: number | null
   score: number
   macroBonus?: MacroBonus
+  sectorRotationBonus?: SectorRotationBonus
   finalScore?: number
 }
 
@@ -58,16 +60,26 @@ export function runPreset(
 export function enrichWithMacro(
   results: FilterResult[],
   sectors: SectorsJson | null | undefined,
-  activeFactors: MacroFactor[]
+  activeFactors: MacroFactor[],
+  rotation?: SectorRotationJson | null
 ): FilterResult[] {
-  if (activeFactors.length === 0) return results
+  const hasFactors = activeFactors.length > 0
+  const hasRotation = !!rotation
+  if (!hasFactors && !hasRotation) return results
   const enriched = results.map((r) => {
     const themes = sectors?.[r.code]?.themes
-    const bonus = computeMacroBonus(r.name, themes, activeFactors)
+    const bonus = hasFactors
+      ? computeMacroBonus(r.name, themes, activeFactors)
+      : undefined
+    const rotationBonus = hasRotation
+      ? computeSectorRotationBonus(themes, rotation!)
+      : undefined
+    const total = (bonus?.total ?? 0) + (rotationBonus?.sectorRotationDelta ?? 0)
     return {
       ...r,
       macroBonus: bonus,
-      finalScore: r.score + bonus.total
+      sectorRotationBonus: rotationBonus,
+      finalScore: r.score + total
     }
   })
   enriched.sort((a, b) => (b.finalScore ?? b.score) - (a.finalScore ?? a.score))

@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import type { MacroIndicatorsJson, FundamentalsJson } from '@/lib/types/indicators'
-import { loadMacroIndicators, loadUpdatedAt } from '@/lib/dataLoader'
+import type { MacroIndicatorsJson, FundamentalsJson, NewsSignalsJson } from '@/lib/types/indicators'
+import { loadMacroIndicators, loadNewsSignals, loadUpdatedAt } from '@/lib/dataLoader'
 
 export function detectFromIndicators(indicators: MacroIndicatorsJson | null): string[] {
   if (!indicators) return []
@@ -55,20 +55,42 @@ export function detectForeignTrend(fundamentals: FundamentalsJson | null): 'sell
   return null
 }
 
-export function useMacroAutoDetect(fundamentals: FundamentalsJson | null): string[] {
-  const [detected, setDetected] = useState<string[]>([])
+export function detectFromNews(news: NewsSignalsJson | null, threshold: number = 5): string[] {
+  if (!news) return []
+  const detected: string[] = []
+  for (const [factorId, sig] of Object.entries(news.signals)) {
+    if (sig.count >= threshold) detected.push(factorId)
+  }
+  return detected
+}
+
+export function useMacroAutoDetect(fundamentals: FundamentalsJson | null): {
+  detectedIds: string[]
+  indicators: MacroIndicatorsJson | null
+  news: NewsSignalsJson | null
+} {
+  const [detectedIds, setDetectedIds] = useState<string[]>([])
+  const [indicators, setIndicators] = useState<MacroIndicatorsJson | null>(null)
+  const [news, setNews] = useState<NewsSignalsJson | null>(null)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) return
-      const ind = await loadMacroIndicators(u.trade_date)
-      const ids = detectFromIndicators(ind)
+      const [ind, n] = await Promise.all([
+        loadMacroIndicators(u.trade_date),
+        loadNewsSignals(u.trade_date)
+      ])
+      setIndicators(ind)
+      setNews(n)
+      const fromIndicators = detectFromIndicators(ind)
+      const fromNews = detectFromNews(n)
       const trend = detectForeignTrend(fundamentals)
-      if (trend === 'sell') ids.push('foreign_sell')
-      else if (trend === 'buy') ids.push('foreign_buy')
-      setDetected(ids)
+      const merged = new Set<string>([...fromIndicators, ...fromNews])
+      if (trend === 'sell') merged.add('foreign_sell')
+      else if (trend === 'buy') merged.add('foreign_buy')
+      setDetectedIds([...merged])
     })
   }, [fundamentals])
 
-  return detected
+  return { detectedIds, indicators, news }
 }

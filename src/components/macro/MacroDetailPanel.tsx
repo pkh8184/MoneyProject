@@ -4,9 +4,10 @@ import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import { useMacroFactors } from '@/lib/macro/useMacroFactors'
 import { computeMacroBonus } from '@/lib/macro/scoring'
+import { computeSectorRotationBonus } from '@/lib/macro/sectorRotation'
 import { strings } from '@/lib/strings/ko'
-import { loadStockMacroResponse, loadUpdatedAt } from '@/lib/dataLoader'
-import type { StockMacroResponseJson } from '@/lib/types/indicators'
+import { loadStockMacroResponse, loadSectorRotation, loadUpdatedAt } from '@/lib/dataLoader'
+import type { StockMacroResponseJson, SectorRotationJson } from '@/lib/types/indicators'
 
 interface Props {
   stockName: string
@@ -16,20 +17,28 @@ interface Props {
 }
 
 export default function MacroDetailPanel({ stockName, themes, basePath, code }: Props) {
-  const { activeFactors } = useMacroFactors()
+  const { activeFactors, activatedAt } = useMacroFactors()
   const [responseDb, setResponseDb] = useState<StockMacroResponseJson | null>(null)
+  const [rotation, setRotation] = useState<SectorRotationJson | null>(null)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) return
-      const r = await loadStockMacroResponse(u.trade_date)
+      const [r, rot] = await Promise.all([
+        loadStockMacroResponse(u.trade_date),
+        loadSectorRotation(u.trade_date)
+      ])
       setResponseDb(r)
+      setRotation(rot)
     })
   }, [])
 
-  if (activeFactors.length === 0) return null
+  const sectorRotation = computeSectorRotationBonus(themes, rotation)
 
-  const bonus = computeMacroBonus(stockName, themes, activeFactors)
+  if (activeFactors.length === 0 && sectorRotation.sectorRotationDelta === 0) return null
+
+  const bonus = computeMacroBonus(stockName, themes, activeFactors, activatedAt)
+  const total = bonus.total + sectorRotation.sectorRotationDelta
 
   return (
     <Card padding="lg" className="mt-6">
@@ -38,7 +47,7 @@ export default function MacroDetailPanel({ stockName, themes, basePath, code }: 
         {strings.macro.matchSummary(bonus.detail.length, activeFactors.length)}
       </p>
 
-      {bonus.detail.length > 0 ? (
+      {bonus.detail.length > 0 || sectorRotation.sectorRotationDelta !== 0 ? (
         <div className="space-y-2">
           {bonus.detail.map((d) => {
             const stockResp = code ? responseDb?.stocks[code]?.[d.factorId] : null
@@ -65,15 +74,25 @@ export default function MacroDetailPanel({ stockName, themes, basePath, code }: 
               </div>
             )
           })}
+          {sectorRotation.sectorRotationDelta !== 0 && (
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary-light dark:bg-bg-secondary-dark">
+              <span className="text-sm">
+                ⚡ 섹터 로테이션 {sectorRotation.rank === 'strong' ? '🔥' : '❄️'} ({sectorRotation.activeSector})
+              </span>
+              <span className={`font-bold ${sectorRotation.sectorRotationDelta > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {sectorRotation.sectorRotationDelta > 0 ? '+' : ''}{sectorRotation.sectorRotationDelta}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-light dark:border-border-dark">
             <span className="font-bold">{strings.macro.totalLine}</span>
             <span
               className={`font-bold text-lg ${
-                bonus.total > 0 ? 'text-emerald-600' : bonus.total < 0 ? 'text-red-600' : ''
+                total > 0 ? 'text-emerald-600' : total < 0 ? 'text-red-600' : ''
               }`}
             >
-              {bonus.total > 0 ? '+' : ''}
-              {bonus.total}
+              {total > 0 ? '+' : ''}
+              {total}
             </span>
           </div>
         </div>

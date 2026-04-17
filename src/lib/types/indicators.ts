@@ -162,3 +162,28 @@ export interface StockMacroResponseJson {
   updated_at: string
   stocks: Record<string, Record<string, StockFactorResponse>>
 }
+
+export interface SectorRotationEntry {
+  theme: string
+  avg_return_pct: number
+  sample_stocks: number
+  rank: 'strong' | 'weak' | 'neutral'
+}
+
+export interface SectorRotationJson {
+  updated_at: string
+  period_days: number
+  sectors: SectorRotationEntry[]
+}
+
+export interface NewsSignal {
+  count: number
+  sample_titles: string[]
+}
+
+export interface NewsSignalsJson {
+  updated_at: string
+  period_hours: number
+  total_articles: number
+  signals: Record<string, NewsSignal>
+}

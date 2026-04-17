@@ -249,7 +249,15 @@ export const strings = {
     backtestSummary: (effect: number, sample: number) =>
       `과거 평균 수혜 D+5 ${effect > 0 ? '+' : ''}${effect.toFixed(2)}% (샘플 ${sample}일)`,
     stockResponse: (effect: number, sample: number) =>
-      `📊 이 종목은 과거 평균 D+5 ${effect > 0 ? '+' : ''}${effect.toFixed(2)}% (${sample}일)`
+      `📊 이 종목은 과거 평균 D+5 ${effect > 0 ? '+' : ''}${effect.toFixed(2)}% (${sample}일)`,
+    rotationTitle: '⚡ 오늘의 섹터 흐름 (최근 30일)',
+    rotationStrong: '🔥 강세',
+    rotationWeak: '❄️ 약세',
+    rotationNeutral: '보통',
+    rotationNoData: '섹터 데이터 준비 중이에요',
+    rotationBadge: (delta: number) => `⚡ 섹터 ${delta > 0 ? '+' : ''}${delta}`,
+    rotationRowPct: (pct: number) => `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`,
+    decayLabel: (days: number, pct: number) => `활성 ${days}일 · 효과 ${pct}%`
   },
   autoDetect: {
     title: (n: number) => `🤖 자동 감지됨 (${n}개)`,
