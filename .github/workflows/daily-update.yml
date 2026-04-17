@@ -44,6 +44,12 @@ jobs:
           cd scripts
           python fetch_sectors.py
 
+      - name: Fetch macro indicators
+        run: |
+          cd scripts
+          python fetch_macro_indicators.py
+        continue-on-error: true
+
       - name: Calculate pattern stats
         run: |
           cd scripts

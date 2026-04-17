@@ -1,7 +1,7 @@
 import { get, set } from 'idb-keyval'
 import type {
   UpdatedAtJson, IndicatorsJson, FundamentalsJson,
-  SectorsJson, PatternStatsJson, StocksJson
+  SectorsJson, PatternStatsJson, StocksJson, MacroIndicatorsJson
 } from '@/lib/types/indicators'
 
 export type FreshnessLevel = 'fresh' | 'stale24h' | 'stale48h'
@@ -116,6 +116,22 @@ export async function loadSectors(tradeDate: string): Promise<SectorsJson | null
     if (!res.ok) return null
     const data = (await res.json()) as SectorsJson
     await setCached(IDB_SECTORS_KEY, tradeDate, data)
+    return data
+  } catch {
+    return null
+  }
+}
+
+const IDB_MACRO_KEY = 'macro-indicators-cache-v1'
+
+export async function loadMacroIndicators(tradeDate: string): Promise<MacroIndicatorsJson | null> {
+  const cached = await getCached<MacroIndicatorsJson>(IDB_MACRO_KEY, tradeDate)
+  if (cached) return cached
+  try {
+    const res = await fetch('/data/macro_indicators.json', { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = (await res.json()) as MacroIndicatorsJson
+    await setCached(IDB_MACRO_KEY, tradeDate, data)
     return data
   } catch {
     return null
