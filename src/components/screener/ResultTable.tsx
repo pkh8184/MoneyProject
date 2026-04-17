@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { FilterResult } from '@/lib/filter'
 import { strings } from '@/lib/strings/ko'
 import Card from '@/components/ui/Card'
+import MacroBadge from '@/components/macro/MacroBadge'
 
 interface Props {
   results: FilterResult[]
@@ -44,7 +45,12 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
                     <Link href={`/${basePath}/stock/${r.code}`} className="hover:underline">{r.code}</Link>
                   ) : r.code}
                 </td>
-                <td className="py-3 pr-4 font-medium">{r.name}</td>
+                <td className="py-3 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-2">
+                    {r.name}
+                    {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
+                  </span>
+                </td>
                 <td className="py-3 pr-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">{r.market}</td>
                 <td className="py-3 pr-4 text-right">{r.price?.toLocaleString() ?? '-'}</td>
                 <td className="py-3 pr-4 text-right text-sm">{r.volume?.toLocaleString() ?? '-'}</td>
@@ -62,7 +68,10 @@ export default function ResultTable({ results, loading, basePath = '' }: Props) 
             <Card interactive={!!basePath} padding="md">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-bold text-base">{r.name}</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-base">{r.name}</span>
+                    {r.macroBonus && <MacroBadge bonus={r.macroBonus} />}
+                  </div>
                   <div className="font-mono text-sm text-text-secondary-light dark:text-text-secondary-dark">
                     {r.code} · {r.market}
                   </div>

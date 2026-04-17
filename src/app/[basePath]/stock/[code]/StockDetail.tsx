@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { loadIndicators, loadFundamentals, loadUpdatedAt, loadOhlcvForCode, type SingleStockOhlcv } from '@/lib/dataLoader'
+import { loadIndicators, loadFundamentals, loadUpdatedAt, loadOhlcvForCode, loadSectors, type SingleStockOhlcv } from '@/lib/dataLoader'
 import { strings } from '@/lib/strings/ko'
 import StockChart from '@/components/stock/StockChart'
 import IndicatorTable from '@/components/stock/IndicatorTable'
@@ -11,7 +11,8 @@ import MatchedPresets from '@/components/stock/MatchedPresets'
 import BowlVolumePanel from '@/components/stock/BowlVolumePanel'
 import BowlPhaseIndicator from '@/components/stock/BowlPhaseIndicator'
 import WatchlistButton from '@/components/stock/WatchlistButton'
-import type { StockIndicators, Fundamental } from '@/lib/types/indicators'
+import MacroDetailPanel from '@/components/macro/MacroDetailPanel'
+import type { StockIndicators, Fundamental, SectorsJson } from '@/lib/types/indicators'
 
 interface Props { code: string; basePath: string }
 
@@ -19,20 +20,23 @@ export default function StockDetail({ code, basePath }: Props) {
   const [stock, setStock] = useState<StockIndicators | null>(null)
   const [fundamental, setFundamental] = useState<Fundamental | undefined>(undefined)
   const [ohlcvFull, setOhlcvFull] = useState<SingleStockOhlcv | null>(null)
+  const [sectors, setSectors] = useState<SectorsJson | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadUpdatedAt().then(async (u) => {
       if (!u) { setLoading(false); return }
-      const [ind, fund, ohlcv] = await Promise.all([
+      const [ind, fund, ohlcv, sec] = await Promise.all([
         loadIndicators(u.trade_date),
         loadFundamentals(u.trade_date),
-        loadOhlcvForCode(u.trade_date, code)
+        loadOhlcvForCode(u.trade_date, code),
+        loadSectors(u.trade_date)
       ])
       const s = ind?.[code] as StockIndicators | undefined
       setStock(s ?? null)
       setFundamental(fund?.[code])
       setOhlcvFull(ohlcv)
+      setSectors(sec)
       setLoading(false)
     })
   }, [code])
@@ -95,6 +99,7 @@ export default function StockDetail({ code, basePath }: Props) {
       </section>
       <BowlPhaseIndicator stock={stock} />
       <BowlVolumePanel stock={stock} fundamental={fundamental} />
+      <MacroDetailPanel stockName={stock.name} themes={sectors?.[code]?.themes} basePath={basePath} />
     </div>
   )
 }
