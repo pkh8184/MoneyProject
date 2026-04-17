@@ -310,6 +310,105 @@ export const strings = {
     notDetected: '저점 정보가 없어 단계 판정 불가',
     hint: '③ 공이 구간 진입 직후가 매수 타이밍이에요. ① 급락이나 ② 횡보 구간에서는 섣불리 들어가지 마세요.'
   },
+  momentum: {
+    panelTitle: '📊 오늘의 체크포인트',
+    summary: (bullish: number, warning: number) =>
+      `긍정 ${bullish}개 · 주의 ${warning}개`,
+    emptyMessage: '감지된 신호가 없어요. 뉴스·공시·실적 이슈 가능성이 있어요.',
+    dataNote: 'ℹ️ 데이터 기준: 어제 종가 · 뉴스·공시는 추적하지 않아요.',
+    moreLink: '자세히 →',
+    timingLatest: '어제 종가 기준',
+    timingRecent: '최근',
+    timingOngoing: '진행 중',
+    expandAria: '체크포인트 펼치기',
+    collapseAria: '체크포인트 접기',
+    signals: {
+      shortTermTrend: {
+        label: '단기 추세 전환',
+        description: 'MA·MACD 상승 전환 신호',
+        condMa: 'MA20↑MA60',
+        condMacd: 'MACD 상승 전환',
+        condAlign: '단기 정배열'
+      },
+      volumeAnomaly: {
+        label: '거래량 이상',
+        description: '매수세 유입',
+        spike: (ratio: string) => `급증 (${ratio}배)`,
+        trend: '추세적 증가'
+      },
+      rsi: {
+        oversoldExit: {
+          label: 'RSI 과매도 이탈',
+          description: '반등 초입 구간',
+          detail: (yest: string, today: string) => `어제 ${yest} → 오늘 ${today}`
+        },
+        healthy: {
+          label: 'RSI 건강한 모멘텀',
+          description: '50~70 구간 상승 중',
+          detail: (rsi: string) => `RSI ${rsi}`
+        },
+        recovering: {
+          label: 'RSI 과매도 회복',
+          description: '30~50 구간 상승 중',
+          detail: (rsi: string) => `RSI ${rsi}`
+        }
+      },
+      newHigh: {
+        break52w: '52주 신고가 돌파',
+        near52wAnd60d: '52주 근접 + 60일 돌파',
+        near52w: '52주 고점 근접',
+        break60d: '60일 신고가 돌파',
+        description: '강한 추세 — 장기 저항 돌파'
+      },
+      bbLowerBounce: {
+        label: '바닥 터치 반등',
+        description: '볼린저 하단 반등',
+        detail: (touches: number) => `최근 5일 중 ${touches}회 터치`
+      },
+      supplyStrong: {
+        label: '수급 강세',
+        detail: '10일 중 7일 이상 순매수',
+        foreignAndInstitution: '외국인·기관 동시',
+        foreignStreak: '외국인 지속',
+        institutionStreak: '기관 지속',
+        todayMax: '오늘 최대 매집'
+      },
+      macroBenefit: {
+        label: '매크로 환경 수혜',
+        description: '시장 환경·섹터가 유리',
+        factor: (n: number) => `팩터 +${n}`,
+        sector: (n: number) => `섹터 +${n}`
+      },
+      mlBullish: {
+        label: 'ML 예측 긍정',
+        description: (pct: number) => `D+20 초과수익 확률 ${pct}%`,
+        detail: (score: number) => `+${score}점 기대`
+      },
+      historicalWinner: {
+        label: '과거 승률 양호',
+        description: (win: number, avg: string) => `매칭 신호 승률 ${win}% · 평균 ${avg}%`,
+        detail: (samples: number) => `과거 총 ${samples}건`
+      },
+      bowlPhase3: {
+        label: '밥그릇 공이 구간',
+        description: '역배열→정배열 변곡점',
+        detail: (score: number) => `거래량 점수 ${score}`
+      },
+      overheated: {
+        label: '과열·고점 근접',
+        description: '단기 조정 가능',
+        rsi: (v: string) => `RSI ${v}`,
+        near52w: '52주 고점 근접',
+        per: (v: string) => `PER ${v}`
+      },
+      downTrend: {
+        label: '하락 추세',
+        description: '전반적 흐름 하향',
+        inverted: '역배열',
+        volumeWeak: '거래량 이탈'
+      }
+    }
+  },
   presets: {
     golden_cross: {
       name: '골든크로스 (MA20↑MA60)',
