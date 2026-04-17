@@ -1,5 +1,10 @@
 {
   "buildCommand": "bash scripts/build-with-data.sh",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "git": {
+    "deploymentEnabled": {
+      "data": false
+    }
+  }
 }
