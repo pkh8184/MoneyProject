@@ -14,13 +14,16 @@ function initialStore(): Store {
   }
 }
 
-export function useMacroFactors(userId: string = 'anon'): {
+export function useMacroFactors(userId: string = 'anon', autoDetectedIds: string[] = []): {
   all: MacroFactor[]
   activeIds: string[]
   activeFactors: MacroFactor[]
+  autoDetectedIds: string[]
   toggle: (id: string) => void
   clearAll: () => void
   isActive: (id: string) => boolean
+  isAutoDetected: (id: string) => boolean
+  applyAllAutoDetected: () => void
 } {
   const [store, setStore] = useLocalStore<Store>(
     `ws:macroFactors:${userId}`,
@@ -55,12 +58,30 @@ export function useMacroFactors(userId: string = 'anon'): {
     [store.activeIds]
   )
 
+  const isAutoDetected = useCallback(
+    (id: string) => autoDetectedIds.includes(id),
+    [autoDetectedIds]
+  )
+
+  const applyAllAutoDetected = useCallback(() => {
+    setStore((prev) => {
+      const next = [...prev.activeIds]
+      for (const id of autoDetectedIds) {
+        if (!next.includes(id)) next.push(id)
+      }
+      return { activeIds: next }
+    })
+  }, [autoDetectedIds, setStore])
+
   return {
     all: macroFactors,
     activeIds: store.activeIds,
     activeFactors,
+    autoDetectedIds,
     toggle,
     clearAll,
-    isActive
+    isActive,
+    isAutoDetected,
+    applyAllAutoDetected
   }
 }

@@ -109,3 +109,17 @@ export interface PatternStatsJson {
     [code: string]: { [presetId: string]: PresetPatternStats }
   }
 }
+
+export interface MacroIndicator {
+  current: number
+  change_20d_pct: number | null
+  change_5d_pct: number | null
+  vs_ma20_pct: number | null
+}
+
+export interface MacroIndicatorsJson {
+  updated_at: string
+  forex_usd_krw: MacroIndicator | null
+  oil_wti: MacroIndicator | null
+  kospi: MacroIndicator | null
+}

@@ -227,10 +227,10 @@ export const strings = {
     loserLabel: '👎 피해',
     guideStep1Title: '🌍 시장 환경이란?',
     guideStep1Body: '"지금 세계에서 벌어지는 일"에 따라 유리한 종목이 달라져요.',
-    guideStep2Title: '사용 방법',
-    guideStep2Body: '현재 상황에 맞는 팩터를 켜두면 추천 점수에 반영돼요.',
-    guideStep3Title: '팁',
-    guideStep3Body: '너무 많이 켜면 효과가 흐려져요. 정말 중요한 것 3~5개만 켜두세요.'
+    guideStep2Title: '🤖 자동 감지',
+    guideStep2Body: '환율·유가·코스피는 실제 데이터로 자동 감지해서 추천해드려요.\n마음에 들면 "자동 감지 전부 켜기" 버튼으로 바로 적용하세요.',
+    guideStep3Title: '수동 설정',
+    guideStep3Body: '전쟁·산업 붐 같은 건 직접 뉴스 보시고 켜주세요.'
   },
   macro: {
     badgeLabel: (total: number) => `🌍 환경 ${total > 0 ? '+' : ''}${total}`,
@@ -241,7 +241,20 @@ export const strings = {
     roleBenefit: '(수혜)',
     roleLoss: '(피해)',
     totalLine: '합계',
-    goToSettings: '🌍 시장 환경 설정 바로가기 →'
+    goToSettings: '🌍 시장 환경 설정 바로가기 →',
+    weightLabel: (w: number) => `강도: ±${w}`
+  },
+  autoDetect: {
+    title: (n: number) => `🤖 자동 감지됨 (${n}개)`,
+    description: '오늘 시장 상황으로 이런 팩터들이 맞아 보여요',
+    noneDetected: '🌤️ 오늘은 특별한 시장 이벤트가 감지되지 않았어요',
+    badgeLabel: '💡 자동 감지',
+    applied: '적용됨',
+    notApplied: '적용 안 됨',
+    turnOn: '적용',
+    turnOff: '끄기',
+    applyAll: '💡 자동 감지 전부 켜기',
+    updatedAt: (iso: string) => `업데이트: ${new Date(iso).toLocaleString('ko-KR')}`
   },
   bowlPhase: {
     title: '🍚 밥그릇 진행 단계',
