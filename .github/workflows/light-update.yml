@@ -51,8 +51,9 @@ jobs:
           git checkout --orphan data-tmp
           # index 비우기 (main에서 넘어온 것 포함)
           git reset
-          # public/data/ 안의 모든 파일만 stage (ohlcv 디렉토리 포함)
-          git add -f public/data/
+          # public/data/ + vercel.json 모두 stage
+          # vercel.json은 data 브랜치 Preview 배포 차단을 위해 반드시 포함해야 함
+          git add -f public/data/ vercel.json
           git commit -m "data(light): $(date -u +%Y-%m-%d) KST $(TZ=Asia/Seoul date +%H:%M)"
           git push -f origin data-tmp:data
 
