@@ -1,0 +1,21 @@
+{
+  "updated_at": "2026-05-15T20:53:28.599682+09:00",
+  "forex_usd_krw": {
+    "current": 1499.29,
+    "change_20d_pct": 1.45,
+    "change_5d_pct": 3.06,
+    "vs_ma20_pct": 1.66
+  },
+  "oil_wti": {
+    "current": 99.83,
+    "change_20d_pct": 19.06,
+    "change_5d_pct": 4.62,
+    "vs_ma20_pct": 1.28
+  },
+  "kospi": {
+    "current": 7493.18,
+    "change_20d_pct": 23.01,
+    "change_5d_pct": -0.06,
+    "vs_ma20_pct": 7.79
+  }
+}
